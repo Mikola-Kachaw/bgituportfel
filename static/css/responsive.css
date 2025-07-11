@@ -1,0 +1,211 @@
+/* Общие адаптивные стили */
+@media (max-width: 1200px) {
+    nav, footer {
+        padding: 25px 60px !important;
+    }
+    
+    .admin-content, .create-ad {
+        padding: 40px 60px !important;
+    }
+    
+    .form-columns {
+        gap: 100px !important;
+    }
+    
+    input, select {
+        width: 100% !important;
+    }
+    
+    .modal-content {
+        width: 80% !important;
+    }
+}
+
+@media (max-width: 992px) {
+    nav, footer {
+        padding: 20px 40px !important;
+    }
+    
+    .admin-content, .create-ad {
+        padding: 30px 40px !important;
+    }
+    
+    .form-columns {
+        flex-direction: column !important;
+        gap: 30px !important;
+    }
+    
+    .left-column, .right-column {
+        width: 100% !important;
+    }
+    
+    .categories-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .card {
+        width: 100% !important;
+    }
+    
+    .submit-request-btn {
+        min-width: 200px !important;
+        min-height: 60px !important;
+        font-size: 28px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    nav, footer {
+        padding: 15px 20px !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    
+    .admin-content, .create-ad {
+        padding: 20px !important;
+    }
+    
+    h1 {
+        font-size: 36px !important;
+    }
+    
+    h2 {
+        font-size: 24px !important;
+    }
+    
+    .drop-area {
+        width: 150px !important;
+        height: 150px !important;
+    }
+    
+    .current-photo {
+        width: 150px !important;
+        height: 150px !important;
+    }
+    
+    .upload-btn, .reg-btn {
+        width: 100% !important;
+        font-size: 24px !important;
+    }
+    
+    .modal-content {
+        width: 90% !important;
+        padding: 20px !important;
+    }
+    
+    .submit-request-btn {
+        min-width: 150px !important;
+        min-height: 50px !important;
+        font-size: 24px !important;
+    }
+    
+    /* Адаптив для страницы регистрации */
+    .banner {
+        display: none !important;
+    }
+    
+    .reg {
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 576px) {
+    nav, footer {
+        border-radius: 0 !important;
+        padding: 10px 15px !important;
+    }
+    
+    .dropdown-content {
+        min-width: 180px !important;
+    }
+    
+    .card-diplom {
+        width: 100% !important;
+        height: auto !important;
+    }
+    
+    .drop-area {
+        width: 100px !important;
+        height: 100px !important;
+    }
+    
+    .current-photo {
+        width: 100px !important;
+        height: 100px !important;
+    }
+    
+    .filter-button {
+        min-width: 200px !important;
+    }
+    
+    .btn img {
+        width: 30px !important;
+        height: 30px !important;
+    }
+    
+    .btn {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    td {
+        font-size: 16px !important;
+    }
+    
+    .announcements-table td {
+        padding: 10px !important;
+    }
+}
+
+/* Специфические адаптивные стили для таблиц */
+@media (max-width: 768px) {
+    .announcements-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .table-actions {
+        justify-content: center !important;
+    }
+}
+
+/* Адаптив для галереи изображений */
+@media (max-width: 992px) {
+    .preview-item {
+        width: 80px !important;
+        height: 80px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .preview-item {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+
+/* Адаптив для форм */
+@media (max-width: 768px) {
+    .radio-group {
+        flex-direction: column !important;
+        height: auto !important;
+        gap: 10px !important;
+    }
+    
+    .description-input {
+        height: 150px !important;
+    }
+}
+
+/* Адаптив для модальных окон */
+@media (max-width: 768px) {
+    .modal-content {
+        margin: 10% auto !important;
+    }
+    
+    .close-btn, .save-btn {
+        width: 100% !important;
+        margin-top: 15px !important;
+    }
+}

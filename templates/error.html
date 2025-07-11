@@ -1,0 +1,85 @@
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница не найдена</title>
+    <link rel="stylesheet" href="/static/css/error.css">
+    <link rel="stylesheet" href="static/css/responsive.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="57x57" href="/static/assets/favicons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/static/assets/favicons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/static/assets/favicons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/static/assets/favicons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/static/assets/favicons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/static/assets/favicons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/static/assets/favicons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/static/assets/favicons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/favicons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/static/assets/favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/static/assets/favicons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/static/assets/favicons/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/static/assets/favicons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<header>
+        <nav>
+            <a href="{{ url_for('show_main_page') }}" style="display: flex; align-items: center; text-decoration: none;">
+                <img src="static/assets/bgitu-portfel.png" width="71px" height="52px">
+                <span style="color: #1867AA; font-weight: bold; font-size: 20px; margin-left: 13px;">БГИТУ Портфель</span>
+            </a>
+            <div class="dropdown">
+                <button onclick="toggleDropdown()" style="display: flex; align-items: center; background-color: white; border: none; cursor: pointer;">
+                   {% if user.avatar_url %}
+                        <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <div style="background-color: white; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #bdbdbd;">
+                            <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
+                        </div>
+                    {% endif %}
+                    <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">
+                        {% if user %}{{ user.last_name }} {{ user.first_name|first }}.{{ user.patronymic|first }}.{% else %}Гость{% endif %}
+                    </span>
+                    <img src="static/assets/alt-arrow-down-svgrepo-com.svg" width="52px" height="28px">
+                </button>
+                <div id="dropdown-menu" class="dropdown-content">
+                    {% if user %}
+                    <a href="{{ url_for('personal_account') }}" style="display: flex; align-items: center;">
+                        <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400;">Профиль</span>
+                    </a>
+                    <a href="{{ url_for('edit_account_page') }}" style="display: flex; align-items: center;">
+                        <img src="static/assets/settings-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400;">Настройки</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" style="display: flex; align-items: center;">
+                        <img src="static/assets/logout-2-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400; color: #AA1818;">Выйти</span>
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('login_page') }}" style="display: flex; align-items: center;">
+                        <span style="font-size: 20px; font-weight: 400;">Войти</span>
+                    </a>
+                    <a href="{{ url_for('register_page') }}" style="display: flex; align-items: center;">
+                        <span style="font-size: 20px; font-weight: 400;">Регистрация</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="error-container">
+        <h1>404</h1>
+        <p>{{ message }}</p>
+        <a href="{{ url_for('show_main_page') }}" class="home-link">Вернуться на главную</a>
+    </div>
+    <footer>
+        <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025 БГИТУ Портфель. Все права защищены.</span>
+        <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+    </footer>
+</body>
+</html>

@@ -1,0 +1,111 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", sans-serif;
+}
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.error-container {
+    text-align: center;
+    padding: 50px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.error-container h1 {
+    font-size: 72px;
+    color: #1867AA;
+    margin-bottom: 20px;
+}
+
+.error-container p {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.home-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #1867AA;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.home-link:hover {
+    background-color: #13548f;
+}
+
+/* Стили для header и footer как в основных шаблонах */
+header {
+    background-color: #1867AA;
+}
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 30px 114px;
+    background-color: white;
+    border-radius: 0 0 25px 25px;
+    border: 2px #bdbdbd solid;
+}
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 235px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    z-index: 1;
+    border: 1px solid #ccc;
+    border-radius: 0 0 25px 25px;
+
+    margin-top: 35.5px;
+}
+
+.dropdown-content a {
+    color: #1867AA;
+    padding: 8px 12px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:last-child {
+    border-radius: 0 0 25px 25px;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.show {
+    display: block;
+}
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 38px 114px;
+    background-color:#1867AA;
+    border-radius: 25px 25px 0 0;
+    border: 2px #bdbdbd solid;
+    margin-top: auto;
+}

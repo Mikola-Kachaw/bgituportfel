@@ -1,0 +1,180 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background-color: #1867AA;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 30px 114px;
+    background-color: white;
+    border-radius: 0 0 25px 25px;
+    border: 2px #bdbdbd solid;
+}
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 38px 114px;
+    background-color:#1867AA;
+    border-radius: 25px 25px 0 0;
+    border: 2px #bdbdbd solid;
+    margin-top:auto;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 235px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    z-index: 1;
+    border: 1px solid #ccc;
+    border-radius: 0 0 25px 25px;
+
+    margin-top: 35.5px;
+}
+
+.dropdown-content a {
+    color: #1867AA;
+    padding: 8px 12px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:last-child {
+    border-radius: 0 0 25px 25px;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.show {
+    display: block;
+}
+
+.admin-content {
+    padding: 50px 114px;
+}
+
+.table-container {
+    margin-bottom: 50px;
+    background-color: white;
+    border-radius: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border: 2px solid #bdbdbd;
+}
+
+h2 {
+    color: #1867AA;
+    font-size: 30px;
+    margin-bottom: 20px;
+    font-weight: 300;
+    font-style: italic;
+}
+
+.announcements-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #1867AA;
+    margin-top: -15px;
+    margin-bottom: -15px;
+}
+
+.announcements-table tr:not(:last-child) {
+    border-bottom: 2px solid #bdbdbd;
+}
+
+.announcements-table td {
+    padding: 15px;
+    text-align: left;
+}
+
+
+.table-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.user-row {
+    display: flex;
+    align-items: center;
+}
+
+.avatar {
+    width: 44px;
+    height: 44px;
+    background-color: black;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 10%;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.btn-approve {
+    background-color: #18AA1F;
+}
+
+.btn-reject {
+    background-color: #AA1818;
+}
+
+.btn-delete {
+    background-color: #AA1818;
+}
+
+.btn img {
+    width: 40px;
+    height: 40px;
+}
+
+.action-cell {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+td{
+    font-size: 20px;
+}

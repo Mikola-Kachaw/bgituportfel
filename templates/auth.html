@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/css/reg.css">
+    <link rel="stylesheet" href="static/css/responsive.css">
+    <title>Авторизация</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="57x57" href="/static/assets/favicons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/static/assets/favicons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/static/assets/favicons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/static/assets/favicons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/static/assets/favicons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/static/assets/favicons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/static/assets/favicons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/static/assets/favicons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/favicons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/static/assets/favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/static/assets/favicons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/static/assets/favicons/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/static/assets/favicons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+</head>
+<body>
+    <div class="banner">
+        <img src="static/assets/bgitu-portfel.png" alt="" class="logo">
+        <h1>БГИТУ Портфель</h1>
+        <p>Всё необходимое собрано<br>в одном месте.</p>
+    </div>
+    <div class="reg">
+        <h1 class="auth-title">Авторизация</h1>
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+        <form id="authForm" method="POST" action="{{ url_for('login_user') }}">
+            <div class="form-group">
+                <label>Логин</label>
+                <input type="text" id="login" name="login" required>
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <div class="password-input">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" class="toggle-password" aria-label="Переключить видимость пароля">
+                        <img src="static/assets/eye-svgrepo-com.svg" class="eye-icon" alt="Показать пароль">
+                        <img src="static/assets/eye-closed-svgrepo-com.svg" class="eye-closed-icon" alt="Скрыть пароль" style="display: none;">
+                    </button>
+                </div>
+            </div>
+            <div class="submit-container">
+                <button type="submit" class="reg-btn">Войти</button>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{{ url_for('register_page') }}" style="color: #1867AA; text-decoration: none;">Нет аккаунта? Зарегистрируйтесь</a>
+            </div>
+        </form>
+    </div>
+    <script src="static/js/script.js"></script>
+</body>
+</html>
