@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <link rel="stylesheet" href="static/css/spreadsheet.css">
+    <title>Главная</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="myModal" class="modal">
+        <div class="modal-content" id="first-part">
+            <h2 style="font-weight: bold; font-size: 30px; text-align: center; margin-bottom: 10px; font-size: 24px;">
+                РЕГИСТРАЦИЯ ПРОШЛА УСПЕШНО!
+            </h2>
+            <p class="subtext">Давайте уточним пару моментов</p>
+            
+            <form id="first-form" style="margin-left: 102px; margin-right: 113px;">
+                <div class="form-group">
+                    <label>Из какого вы института?</label>
+                    <select id="institute" required>
+                        <option value="" disabled selected>Выберите ваш институт</option>
+                        <option value="institute1">Инженерно-экономический институт</option>
+                        <option value="institute2">Строительный институт</option>
+                        <option value="institute3">Институт лесного комплекса, ландшафтной архитектуры, транспорта и экологии</option>
+                    </select>
+                    <div class="error-message" id="institute-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>На каком курсе обучения?</label>
+                    <input type="text" id="course" placeholder="Введите ваш курс" required>
+                    <div class="error-message" id="course-error"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label>В какой группе учитесь?</label>
+                    <input type="text" id="group" placeholder="Введите вашу группу" required>
+                    <div class="error-message" id="group-error"></div>
+                </div>
+                
+                <div style="display: flex; justify-content: center;">
+                    <button type="button" class="next-btn" id="next-button">Далее</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Вторая часть формы (скрытая изначально) -->
+        <div class="modal-content" id="second-part" style="display: none;">
+            <h2 style="font-weight: bold; font-size: 24px; text-align: center; margin-bottom: 7px;">
+                ОТЛИЧНО!
+            </h2>
+            <h3 style="font-size: 20px; font-weight: 400; text-align: center; margin-bottom: 6px;">Давайте выберем категории</h3>
+            <h6 style="font-size: 14px; font-weight: 400; font-style: italic; text-align: center;">Необходимо выбрать не менее одной</h6>
+            <p class="error-message2" id="categories-error"></p>
+            
+            <div class="categories-grid">
+                <button type="button" class="category-btn" data-category="programming">Программирование</button>
+                <button type="button" class="category-btn" data-category="literature">Литература</button>
+                <button type="button" class="category-btn" data-category="sport">Спорт</button>
+                <button type="button" class="category-btn" data-category="active">Актив</button>
+            </div>
+            
+            <div style="display: flex; justify-content: center;">
+                <button type="button" class="submit-btn" id="submit-categories">Готово</button>
+            </div>
+        </div>
+
+        <!-- Третья часть (новая) -->
+        <div class="modal-content" id="third-part" style="display: none;">
+            <h2 style="font-weight: bold; font-size: 30px; text-align: center; margin-bottom: 20px;">
+                ПОЗДРАВЛЯЕМ!
+            </h2>
+            <p style="text-align: center; font-size: 20px; margin-bottom: 30px;">
+                Теперь вы можете откликаться на объявления!
+            </p>
+            
+            <div style="display: flex; justify-content: center;">
+                <button type="button" class="home-btn" id="home-button">На главную</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <nav>
+            <a href="spreadsheet.html" style="display: flex; align-items: center; text-decoration: none;">
+                <img src="assets/bgitu-portfel.png" width="71px" height="52px">
+                <span style="color: #1867AA; font-weight: bold; font-size: 20px; margin-left: 13px;">БГИТУ Портфель</span>
+            </a>
+            <!-- <div style="color: #1867AA; font-size: 20px; font-weight: 400;">
+                <a href="register.html" style="margin-right: 21px; text-decoration: none;">Регистрация</a>
+                <a href="auth.html" style="text-decoration: none;">Войти</a>
+            </div> -->
+            <div class="dropdown">
+                <button onclick="toggleDropdown()" style="display: flex; align-items: center; background-color: white; border: none; cursor: pointer;">
+                    <div style="background-color: black; width: 44px; height: 44px; border-radius: 50%;"></div>
+                    <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">Пользователь</span>
+                    <img src="assets/alt-arrow-down-svgrepo-com.svg" width="52px" height="28px">
+                </button>
+                <div id="dropdown-menu" class="dropdown-content">  
+                    <a href="profile.html" style="display: flex; align-items: center;">
+                        <img src="assets/user-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400;">Профиль</span>
+                    </a>
+                    <a href="edit-account.html" style="display: flex; align-items: center;">
+                        <img src="assets/settings-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400;">Настройки</span>
+                    </a>  
+                    <a href="/logout" style="display: flex; align-items: center;">
+                        <img src="assets/logout-2-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400; color: #AA1818;">Выйти</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div style="padding: 68px 114px; background-color: #1867AA;">
+        <h1 style="color: white; font-size: 45px; font-weight: bold;">Добрый день, Пользователь!</h1>
+        <span style="color: rgba(255, 255, 255, 0.434); font-size: 20px; font-style: italic; font-weight: 300;">Давайте посмотрим Ваши мероприятия</span>
+    </div>
+
+    <div style="padding: 30px 55px;">
+        <div style="display: flex; gap: 25px 52px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 16px;">
+                <span style="font-size: 20px; font-weight: 600; color: #1867AA;">Институт:</span>
+                <div style="position: relative;">
+                    <div style="width: 276px" class="dropdown-header" id="dropdownHeader">
+                        <div class="selected-items-preview" id="selectedItemsPreview"></div>
+                        <div style="display: flex; align-items: center;">
+                            <svg class="arrow" id="dropdownArrow" width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 3.06665L0.933333 -1.44521e-05L0 0.933319L4 4.93332L8 0.933319L7.06667 -1.44521e-05L4 3.06665Z" fill="#1867AA"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div style="width: 276px" class="dropdown-list" id="dropdownList">
+                        <!-- Элементы будут добавлены через JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <span style="font-size: 20px; font-weight: 600; color: #1867AA;">Курс:</span>
+                <div style="position: relative;">
+                    <div style="width: 62px" class="dropdown-header" id="dropdownHeader2">
+                        <div class="selected-items-preview" id="selectedItemsPreview2"></div>
+                        <div style="display: flex; align-items: center;">
+                            <svg class="arrow" id="dropdownArrow2" width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 3.06665L0.933333 -1.44521e-05L0 0.933319L4 4.93332L8 0.933319L7.06667 -1.44521e-05L4 3.06665Z" fill="#1867AA"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div style="width: 62px" class="dropdown-list" id="dropdownList2">
+                        <!-- Элементы будут добавлены через JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 16px;">
+                <span style="font-size: 20px; font-weight: 600; color: #1867AA;">Группа:</span>
+                <div style="position: relative;">
+                    <div style="width: 130px" class="dropdown-header" id="dropdownHeader3">
+                        <div class="selected-items-preview" id="selectedItemsPreview3"></div>
+                        <div style="display: flex; align-items: center;">
+                            <svg class="arrow" id="dropdownArrow3" width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 3.06665L0.933333 -1.44521e-05L0 0.933319L4 4.93332L8 0.933319L7.06667 -1.44521e-05L4 3.06665Z" fill="#1867AA"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div style="width: 130px" class="dropdown-list" id="dropdownList3">
+                        <!-- Элементы будут добавлены через JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопка сброса фильтров -->
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+                <button id="resetFiltersBtn" style="
+                    padding: 8px 16px;
+                    background-color: #f8f9fa;
+                    border: 2px solid #1867AA;
+                    border-radius: 15px;
+                    color: #1867AA;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                ">
+                    Сбросить фильтры
+                </button>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <div class="search-wrapper">
+                <div class="search-icon">
+                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="30" height="30" fill="white"/>
+                        <path d="M26.25 26.25L20.8125 20.8125M23.75 13.75C23.75 19.2728 19.2728 23.75 13.75 23.75C8.22715 23.75 3.75 19.2728 3.75 13.75C3.75 8.22715 8.22715 3.75 13.75 3.75C19.2728 3.75 23.75 8.22715 23.75 13.75Z" stroke="#1867AA" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <input
+                    id="searchInput" 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Поиск по ФИО..."
+                >
+            </div>
+        </div>
+
+        <!-- Таблица -->
+        <div class="table-container">
+            <table id="studentsTable">
+                <thead>
+                    <tr>
+                        <th class="fio-column" data-sort="fio">
+                            ФИО
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                        <th class="group-column" data-sort="group">
+                            Группа
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                        <th class="number-column" data-sort="study">
+                            Учебная деятельность
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                        <th class="number-column" data-sort="research">
+                            Научно-исследовательская деятельность
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                        <th class="number-column" data-sort="creative">
+                            Творческие конкурсы
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                        <th class="number-column" data-sort="sport">
+                            Спорт
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                        <th class="number-column" data-sort="social">
+                            Общественная работа
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                        <th class="number-column" data-sort="total">
+                            Общее количество баллов
+                            <div class="sort-indicator">
+                                <div class="sort-arrow up"></div>
+                                <div class="sort-arrow down"></div>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Данные будут загружены через JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <div class="pagination-info" id="paginationInfo"></div>
+            
+            <div class="pagination-controls">
+                <div class="goto-container">
+                    <button class="goto-btn" id="gotoBtn">Перейти</button>
+                    <input type="number" id="gotoInput" class="goto-input" min="1" placeholder="№">
+                </div>
+
+                <button class="pagination-btn" id="firstPageBtn" title="Первая страница">««</button>
+                <button class="pagination-btn" id="prevPageBtn" title="Предыдущая страница">‹</button>
+                
+                <div id="pageNumbers">
+                    <!-- Номера страниц будут сгенерированы через JavaScript -->
+                </div>
+                
+                <button class="pagination-btn" id="nextPageBtn" title="Следующая страница">›</button>
+                <button class="pagination-btn" id="lastPageBtn" title="Последняя страница">»»</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <img src="assets/Logo_BGITU_bely.png" width="59px" height="60px">
+        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025 БГИТУ Портфель. Все права защищены.</span>
+        <img src="assets/logo_IT_bely.png" width="55px" height="59px">
+    </footer>
+    <script src="static/js/script3.js"></script>
+</body>
+</html>
