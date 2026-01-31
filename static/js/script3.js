@@ -629,10 +629,10 @@ function formatSocialDetails(details) {
 function createDetailContent(student, columnWidths = []) {
     const detailFlex = document.createElement('div');
     detailFlex.className = 'detail-flex';
-    
+
     // Если нет ширин, используем значения по умолчанию
     const widths = columnWidths.length === 8 ? columnWidths : [200, 111, 167, 188, 167, 167, 167, 167];
-    
+
     // Содержимое для каждой ячейки
     const cellContents = [
         // 1. Институт (вместо ФИО)
@@ -644,31 +644,31 @@ function createDetailContent(student, columnWidths = []) {
             <span class="label">Курс:</span>
             <span class="value">${student.course}</span>
         </div>`,
-        
+
         // 2. Пустая ячейка для группы
         '',
-        
+
         // 3. Учебная деятельность
         formatStudyDetails(student.studyDetails),
-        
+
         // 4. Научно-исследовательская деятельность
         formatResearchDetails(student.researchDetails),
-        
+
         // 5. Творческие конкурсы
         formatCreativeDetails(student.creativeDetails),
-        
+
         // 6. Спорт
         formatSportDetails(student.sportDetails),
-        
+
         // 7. Общественная работа
         formatSocialDetails(student.socialDetails),
-        
+
         // 8. Грамоты
         `<a href="${student.certificatesLink}" target="_blank" class="certificates-btn">
             Посмотреть грамоты
         </a>`
     ];
-    
+
     // Создаем ячейки с точными ширинами
     for (let i = 0; i < 8; i++) {
         const cell = document.createElement('div');
@@ -677,16 +677,16 @@ function createDetailContent(student, columnWidths = []) {
         cell.style.minWidth = `${widths[i]}px`;
         cell.style.maxWidth = `${widths[i]}px`;
         cell.style.flex = `0 0 ${widths[i]}px`;
-        
+
         // Для ячейки с грамотами
         if (i === 7) {
             cell.classList.add('certificates-cell');
         }
-        
+
         cell.innerHTML = cellContents[i];
         detailFlex.appendChild(cell);
     }
-    
+
     return detailFlex;
 }
 
@@ -720,7 +720,7 @@ function renderTable() {
         mainRow.dataset.studentId = student.id;
         
         mainRow.innerHTML = `
-            <td class="fio-column">${student.fio}</td>
+            <td class="fio-column"><a style="color:#1867AA" href="/profile">${student.fio}</a></td>
             <td class="group-column">${student.group}</td>
             <td>${student.study}</td>
             <td>${student.research}</td>
@@ -736,15 +736,15 @@ function renderTable() {
         const detailRow = document.createElement('tr');
         detailRow.className = `detail-row ${expandedRowId === student.id ? 'expanded' : ''}`;
         detailRow.dataset.studentId = student.id;
-        
+
         const detailCell = document.createElement('td');
         detailCell.colSpan = 8;
         detailCell.className = 'detail-content';
-        
+
         // Передаем ширины колонок в функцию создания деталей
         detailCell.appendChild(createDetailContent(student, columnWidths));
         detailRow.appendChild(detailCell);
-        
+
         tableBody.appendChild(detailRow);
         
         // Обработчик клика по основной строке
@@ -1203,10 +1203,10 @@ function validateForm() {
     const form = document.getElementById('first-form');
     const inputs = form.querySelectorAll('input, select');
     let isValid = true;
-    
+
     inputs.forEach(input => {
         const errorElement = document.getElementById(`${input.id}-error`);
-        
+
         if (!input.value.trim()) {
             errorElement.textContent = 'Это поле обязательно для заполнения';
             errorElement.style.display = 'block';
@@ -1217,7 +1217,7 @@ function validateForm() {
             input.style.borderColor = '#ddd';
         }
     });
-    
+
     return isValid;
 }
 
@@ -1227,7 +1227,7 @@ function validateForm() {
 function handleHeaderClick(event) {
     const header = event.currentTarget;
     const column = header.getAttribute('data-sort');
-    
+
     // Если кликнули по уже активному столбцу, меняем направление сортировки
     if (column === currentSortColumn) {
         currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
@@ -1236,11 +1236,11 @@ function handleHeaderClick(event) {
         currentSortColumn = column;
         currentSortDirection = (column === 'fio' || column === 'group') ? 'asc' : 'desc';
     }
-    
+
     // Сбрасываем на первую страницу и закрываем раскрытые строки
     currentPage = 1;
     expandedRowId = null;
-    
+
     // Перерисовываем таблицу
     renderTable();
     renderPageNumbers();
@@ -1371,19 +1371,19 @@ function initModal() {
         if (shouldShowModal === 'true') {
             document.getElementById('myModal').style.display = 'block';
         }
-        
+
         // Закрытие по нажатию на крестик
         document.querySelector('.close').onclick = function() {
             document.getElementById('myModal').style.display = 'none';
         };
-        
+
         // Закрытие по клику вне модального окна
         window.onclick = function(event) {
             const modal = document.getElementById('myModal');
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
-            
+
             // Закрытие навигационного dropdown
             if (!event.target.closest('.dropdown')) {
                 document.getElementById("dropdown-menu").classList.remove("show");
@@ -1401,7 +1401,7 @@ function initForm() {
     const secondPart = document.getElementById('second-part');
     const form = document.getElementById('first-form');
     const inputs = form.querySelectorAll('input, select');
-    
+
     // Обработчик кнопки "Далее"
     nextButton.addEventListener('click', function() {
         if (validateForm()) {
@@ -1409,7 +1409,7 @@ function initForm() {
             secondPart.style.display = 'block';
         }
     });
-    
+
     // Убираем ошибку при вводе
     inputs.forEach(input => {
         input.addEventListener('input', function() {
@@ -1418,17 +1418,17 @@ function initForm() {
             input.style.borderColor = '#ddd';
         });
     });
-    
+
     // Выбор категорий
     const categoryButtons = document.querySelectorAll('.category-btn');
     const submitButton = document.getElementById('submit-categories');
     const errorMessage = document.getElementById('categories-error');
     let selectedCategories = [];
-    
+
     categoryButtons.forEach(button => {
         button.addEventListener('click', function() {
             const category = this.getAttribute('data-category');
-            
+
             if (this.classList.contains('selected')) {
                 this.classList.remove('selected');
                 selectedCategories = selectedCategories.filter(item => item !== category);
@@ -1436,24 +1436,24 @@ function initForm() {
                 this.classList.add('selected');
                 selectedCategories.push(category);
             }
-            
+
             // Сбрасываем сообщение об ошибке при выборе
             errorMessage.textContent = '';
         });
     });
-    
+
     // Обработчик кнопки "Готово"
     submitButton.addEventListener('click', function() {
         if (selectedCategories.length === 0) {
             errorMessage.textContent = 'Пожалуйста, выберите хотя бы одну категорию';
             return;
         }
-        
+
         // Переход к третьей части
         secondPart.style.display = 'none';
         document.getElementById('third-part').style.display = 'block';
     });
-    
+
     // Обработчик кнопки "На главную"
     document.getElementById('home-button').addEventListener('click', function() {
         document.getElementById('myModal').style.display = 'none';
@@ -1467,10 +1467,26 @@ function initForm() {
  * Основная функция запуска при загрузке страницы
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация модального окна и формы
-    initModal();
-    initForm();
-    
     // Инициализация основной таблицы
     init();
 });
+
+
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting;
+
+            if (hour < 6) greeting = 'Доброй ночи';
+            else if (hour < 12) greeting = 'Доброе утро';
+            else if (hour < 18) greeting = 'Добрый день';
+            else greeting = 'Добрый вечер';
+
+            const greetingElement = document.getElementById('greeting');
+            if (greetingElement) {
+                greetingElement.textContent = greeting;
+            }
+        }
+
+        // Вызываем при загрузке и каждую минуту
+        updateGreeting();
+        setInterval(updateGreeting, 60000);

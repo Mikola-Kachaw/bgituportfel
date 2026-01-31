@@ -133,16 +133,6 @@
                     <input type="number" name="course_number" value="{{ user.course_number or '' }}" min="1" max="6">
                     <label>Группа</label>
                     <input type="text" name="group_name" value="{{ user.group_name or '' }}">
-                    <label>Интересующие категории</label>
-                    <div class="categories-grid">
-                        {% for category in all_categories %}
-                        <label class="category-btn {% if category in user.categories %}selected{% endif %}">
-                            <input type="checkbox" name="categories" value="{{ category }}"
-                                   {% if category in user.categories %}checked{% endif %}>
-                            {{ category }}
-                        </label>
-                        {% endfor %}
-                    </div>
                     <button type="submit" class="upload-btn">Сохранить изменения</button>
                 </div>
             </div>
@@ -150,9 +140,13 @@
     </div>
 
     <footer>
-        <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
-        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025 БГИТУ Портфель. Все права защищены.</span>
-        <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+        </a>
+        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025-2026 БГИТУ Портфель. Все права защищены.</span>
+        <a href="https://it.bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        </a>
     </footer>
 
     <script>

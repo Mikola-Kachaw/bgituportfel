@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="static/css/create-ad.css">
     <link rel="stylesheet" href="static/css/responsive.css">
-    <title>Создание объявления</title>
+    <title>Подать заявку</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/static/assets/favicons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
-    <script src="static/js/script.js"></script>
+    <script src="static/js/script.js" defer></script>
 </head>
 <body>
     <header>
@@ -65,60 +65,205 @@
         </nav>
     </header>
     <div style="padding: 68px 114px; background-color: #1867AA;">
-        <h1 style="color: white; font-size: 45px; font-weight: bold;">Создание объявления</h1>
+        <h1 style="color: white; font-size: 45px; font-weight: bold;">Подать заявку</h1>
+        <span style="color: rgba(255, 255, 255, 0.434); font-size: 20px; font-style: italic; font-weight: 300;">Давайте заполним Вашу заявку</span>
     </div>
 
     <div class="create-ad">
         {% if error %}
             <div class="error-message">{{ error }}</div>
         {% endif %}
-        <form method="POST" action="{{ url_for('create_ad') }}" enctype="multipart/form-data">
+
+        <form method="POST" action="{{ url_for('update_account') }}" enctype="multipart/form-data">
             <div class="form-columns">
                 <div class="left-column">
-                    <label>Название</label>
-                    <input type="text" name="title" required value="{{ form_data.title if form_data }}">
-                    <label>Категория</label>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold; margin-bottom: 10px">Основная информация</h1>
+                    <label>Фамилия</label>
+                    <input type="text" name="last_name" value="{{ user.last_name }}" required>
+                    <label>Имя</label>
+                    <input type="text" name="first_name" value="{{ user.first_name }}" required>
+                    <label>Отчество</label>
+                    <input type="text" name="patronymic" value="{{ user.patronymic or '' }}">
+                    <label>Институт</label>
                     <div class="select-wrapper">
-                        <select name="category" required>
-                            <option value="" disabled selected>Выберите категорию</option>
-                            {% for category in categories %}
-                                <option value="{{ category }}" {% if form_data and form_data.category == category %}selected{% endif %}>{{ category }}</option>
-                            {% endfor %}
+                        <select name="education_level">
+                            <option value="" disabled>Выберите институт</option>
+                            <option value="iei">Инженерно-экономический институт</option>
+                            <option value="si">Строительный институт</option>
+                            <option value="ilklatie">Институт лесного комплекса, ландшафтной архитектуры, транспорта и экологии</option>
                         </select>
                         <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
                     </div>
-                    <label>Описание</label>
-                    <div class="description-wrapper">
-                        <textarea class="description-input" name="description" maxlength="500" required>{% if form_data %}{{ form_data.description }}{% endif %}</textarea>
-                        <div class="char-counter"><span id="char-count">0</span>/500</div>
+                    <label>Курс</label>
+                    <input type="number" name="course_number" value="{{ user.course_number or '' }}" min="1" max="6">
+                    <label>Группа</label>
+                    <input type="text" name="group_name" value="{{ user.group_name or '' }}">
+                    <br>
+                    <br>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold; margin-bottom: 10px">Учебная деятельность</h1>
+                    <label>Подкатегория</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите подкатегорию</option>
+                            <option value="bachelor">1</option>
+                            <option value="master">2</option>
+                            <option value="postgraduate">3</option>
+                            <option value="etc">и тд</option> <!-- понятное дело тягаются из бд, я щас это от балды написал-->
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
                     </div>
-                    <label>Дата проведения</label>
-                    <input type="date" name="event_date" required value="{{ form_data.event_date if form_data }}">
+                    <label>Место</label>
+                    <input type="number" name="place_number" value="" min="1" max="3">
+                    <label>Грамота</label>
+                    <div class="photo-container">
+                        <div class="avatar-upload">
+                            <div class="drop-area" id="dropArea">
+                                <span class="drop-text">Выбрать грамоты</span>
+                                <input type="file" id="fileInput" name="certificate" multiple accept="image/*,.pdf">
+                            </div>
+                        </div>
+                    </div>
+                    <label>Количество баллов за категорию:</label>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold;">3</h1>
+                    <br>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold; margin-bottom: 10px">Научно-исследовательская деятельность</h1>
+                    <label>Подкатегория</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите подкатегорию</option>
+                            <option value="bachelor">1</option>
+                            <option value="master">2</option>
+                            <option value="postgraduate">3</option>
+                            <option value="etc">и тд</option> <!-- понятное дело тягаются из бд, я щас это от балды написал-->
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
+                    </div>
+                    <label>Место</label>
+                    <input type="number" name="place_number" value="" min="1" max="3">
+                    <label>Грамоты</label>
+                    <div class="photo-container">
+                        <div class="avatar-upload">
+                            <div class="drop-area" id="dropArea">
+                                <span class="drop-text">Выбрать грамоты<br></span>
+                                <input type="file" id="fileInput" name="certificate" multiple accept="image/*,.pdf">
+                            </div>
+                        </div>
+                    </div>
+                    <label>Количество баллов за категорию:</label>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold;">3</h1>
                 </div>
 
                 <div class="right-column">
-                    <label>Фотографии (можно загрузить несколько)</label>
-                    <div class="avatar-upload">
-                        <div class="drop-area" id="dropArea">
-                            <span class="drop-text">+<br>Добавить фотографии</span>
-                            <input type="file" id="fileInput" name="images" accept="image/*" multiple>
-                            <div class="preview-container" id="previewContainer"></div>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold; margin-bottom: 10px">Творческие конкурсы</h1>
+                    <label>Подкатегория</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите подкатегорию</option>
+                            <option value="bachelor">1</option>
+                            <option value="master">2</option>
+                            <option value="postgraduate">3</option>
+                            <option value="etc">и тд</option> <!-- понятное дело тягаются из бд, я щас это от балды написал-->
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
+                    </div>
+                    <label>Место</label>
+                    <input type="number" name="place_number" value="" min="1" max="3">
+                    <label>Грамота</label>
+                    <div class="photo-container">
+                        <div class="avatar-upload">
+                            <div class="drop-area" id="dropArea">
+                                <span class="drop-text">Выбрать грамоты</span>
+                                <input type="file" id="fileInput" name="certificate" multiple accept="image/*,.pdf">
+                            </div>
                         </div>
                     </div>
-                    <label>Требования</label>
-                    <input type="text" name="requirements" value="{{ form_data.requirements if form_data }}">
-                    <label>Награды</label>
-                    <input type="text" name="rewards" value="{{ form_data.rewards if form_data }}">
-                    <button type="submit" class="upload-btn">Опубликовать</button>
+                    <label>Количество баллов за категорию:</label>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold;">3</h1>
+                    <br>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold; margin-bottom: 10px">Спорт</h1>
+                    <label>Подкатегория</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите подкатегорию</option>
+                            <option value="bachelor">1</option>
+                            <option value="master">2</option>
+                            <option value="postgraduate">3</option>
+                            <option value="etc">и тд</option> <!-- понятное дело тягаются из бд, я щас это от балды написал-->
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
+                    </div>
+                    <label>Место</label>
+                    <input type="number" name="place_number" value="" min="1" max="3">
+                    <label>Грамота</label>
+                    <div class="photo-container">
+                        <div class="avatar-upload">
+                            <div class="drop-area" id="dropArea">
+                                <span class="drop-text">Выбрать грамоты</span>
+                                <input type="file" id="fileInput" name="certificate" multiple accept="image/*,.pdf">
+                            </div>
+                        </div>
+                    </div>
+                    <label>Количество баллов за категорию:</label>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold;">3</h1>
+                    <br>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold; margin-bottom: 10px">Общественная деятельность</h1>
+                    <label>Являетесь ли вы старостой?</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="starosta" value="yes"> Да
+                        </label>
+                        <label>
+                            <input type="radio" name="starosta" value="no"> Нет
+                        </label>
+                    </div>
+                    <label>Занимаетесь профсоюзной работой?</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="profsouz" value="yes"> Да
+                        </label>
+                        <label>
+                            <input type="radio" name="profsouz" value="no"> Нет
+                        </label>
+                    </div>
+                    <label>Занимаетесь волотёрской работой?</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="volonter" value="yes"> Да
+                        </label>
+                        <label>
+                            <input type="radio" name="volonter" value="no"> Нет
+                        </label>
+                    </div>
+                    <label>Являетесь ли вы профоргом?</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="proforg" value="yes"> Да
+                        </label>
+                        <label>
+                            <input type="radio" name="proforg" value="no"> Нет
+                        </label>
+                    </div>
+                    <label>Количество баллов за категорию:</label>
+                    <h1 style="color: #1867AA; font-size: 30px; font-weight: bold;">8</h1>
+                    <br>
+                    <label style="font-size: 35px;">Общее количество баллов:
+                        <h1 style="color: #1867AA; font-size: 40px; font-weight: bold;">28</h1>
+                    </label>
+
+                    <button type="submit" class="upload-btn">Подать заявку</button>
                 </div>
             </div>
         </form>
     </div>
 
     <footer>
-        <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
-        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025 БГИТУ Портфель. Все права защищены.</span>
-        <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+        </a>
+        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025-2026 БГИТУ Портфель. Все права защищены.</span>
+        <a href="https://it.bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        </a>
     </footer>
 
     <script>
@@ -132,48 +277,54 @@
             }
         }
 
-        // Подсчет символов в textarea
-        document.querySelector('.description-input').addEventListener('input', function() {
-            const counter = document.getElementById('char-count');
-            counter.textContent = this.value.length;
+        // Password visibility toggle
+        document.querySelector('.toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = this.querySelector('.eye-icon');
+            const eyeClosedIcon = this.querySelector('.eye-closed-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.style.display = 'none';
+                eyeClosedIcon.style.display = 'block';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.style.display = 'block';
+                eyeClosedIcon.style.display = 'none';
+            }
         });
 
-        // Обработка drag and drop для загрузки изображений
+        // File upload drop area
         const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('image');
+        const fileInput = document.getElementById('avatar');
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                const fileName = this.files[0].name;
+                dropArea.querySelector('.drop-text').textContent = fileName;
+            }
         });
 
-        function preventDefaults(e) {
+        dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-        }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
+            dropArea.classList.add('dragover');
         });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('dragover');
         });
 
-        function highlight() {
-            dropArea.classList.add('highlight');
-        }
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
 
-        function unhighlight() {
-            dropArea.classList.remove('highlight');
-        }
-
-        dropArea.addEventListener('drop', handleDrop, false);
-
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            fileInput.files = files;
-        }
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                dropArea.querySelector('.drop-text').textContent = e.dataTransfer.files[0].name;
+            }
+        });
     </script>
 </body>
 </html>

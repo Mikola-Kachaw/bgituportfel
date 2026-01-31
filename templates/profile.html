@@ -132,19 +132,6 @@
                 <h4 style="font-style: italic; font-weight: 300;">Институт:</h4>
                 <p>{{ user.institute if user.institute else 'Не указано' }}</p>
             </div>
-
-            <div>
-                <h4 style="font-style: italic; font-weight: 300;">Интересующие категории:</h4>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    {% if user.categories %}
-                        {% for category in user.categories %}
-                        <span class="category-tag">{{ category }}</span>
-                        {% endfor %}
-                    {% else %}
-                        <span class="no-categories">Не указаны</span>
-                    {% endif %}
-                </div>
-            </div>
         </div>
 
         <div style="display: flex; justify-content: space-between; color: #1867AA; margin-top: 30px;">
@@ -166,9 +153,13 @@
     </div>
 
     <footer>
-        <img src="/static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
-        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025 БГИТУ Портфель. Все права защищены.</span>
-        <img src="/static/assets/logo_IT_bely.png" width="55px" height="59px">
+        <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+        </a>
+        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025-2026 БГИТУ Портфель. Все права защищены.</span>
+        <a href="https://it.bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        </a>
     </footer>
 
     <script>

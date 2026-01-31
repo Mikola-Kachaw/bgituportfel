@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/css/create-ad.css">
+    <link rel="stylesheet" href="static/css/responsive.css">
+    <title>Добавление грамоты</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="57x57" href="/static/assets/favicons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/static/assets/favicons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/static/assets/favicons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/static/assets/favicons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/static/assets/favicons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/static/assets/favicons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/static/assets/favicons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/static/assets/favicons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/favicons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/static/assets/favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/static/assets/favicons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/static/assets/favicons/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/static/assets/favicons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <script src="static/js/script.js" defer></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="{{ url_for('show_main_page') }}" style="display: flex; align-items: center; text-decoration: none;">
+                <img src="static/assets/bgitu-portfel.png" width="71px" height="52px">
+                <span style="color: #1867AA; font-weight: bold; font-size: 20px; margin-left: 13px;">БГИТУ Портфель</span>
+            </a>
+            <div class="dropdown">
+                <button onclick="toggleDropdown()" style="display: flex; align-items: center; background-color: white; border: none; cursor: pointer;">
+                    {% if user.avatar_url %}
+                        <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <div style="background-color: white; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #bdbdbd;">
+                            <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
+                        </div>
+                    {% endif %}
+                    <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">{{ user.last_name }} {{ user.first_name|first }}.{{ user.patronymic|first }}.</span>
+                    <img src="static/assets/alt-arrow-down-svgrepo-com.svg" width="52px" height="28px">
+                </button>
+                <div id="dropdown-menu" class="dropdown-content">
+                    <a href="{{ url_for('personal_account') }}" style="display: flex; align-items: center;">
+                        <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400;">Профиль</span>
+                    </a>
+                    <a href="{{ url_for('edit_account_page') }}" style="display: flex; align-items: center;">
+                        <img src="static/assets/settings-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400;">Настройки</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" style="display: flex; align-items: center;">
+                        <img src="static/assets/logout-2-svgrepo-com.svg" width="46px" height="29px">
+                        <span style="font-size: 20px; font-weight: 400; color: #AA1818;">Выйти</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div style="padding: 68px 114px; background-color: #1867AA;">
+        <h1 style="color: white; font-size: 45px; font-weight: bold;">Добавление грамоты</h1>
+        <span style="color: rgba(255, 255, 255, 0.434); font-size: 20px; font-style: italic; font-weight: 300;">Давайте добавим Вашу грамоту</span>
+    </div>
+
+    <div class="create-ad">
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('update_account') }}" enctype="multipart/form-data">
+            <div class="form-columns">
+                <div class="left-column">
+                    <label>Фамилия</label>
+                    <input type="text" name="last_name" value="{{ user.last_name }}" required>
+                    <label>Имя</label>
+                    <input type="text" name="first_name" value="{{ user.first_name }}" required>
+                    <label>Отчество</label>
+                    <input type="text" name="patronymic" value="{{ user.patronymic or '' }}">
+                    <label>Институт</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите институт</option>
+                            <option value="iei">Инженерно-экономический институт</option>
+                            <option value="si">Строительный институт</option>
+                            <option value="ilklatie">Институт лесного комплекса, ландшафтной архитектуры, транспорта и экологии</option>
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
+                    </div>
+                    <label>Курс</label>
+                    <input type="number" name="course_number" value="{{ user.course_number or '' }}" min="1" max="6">
+                    <label>Группа</label>
+                    <input type="text" name="group_name" value="{{ user.group_name or '' }}">
+                </div>
+
+                <div class="right-column">
+                    <label>Категория</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите категорию</option>
+                            <option value="bachelor">Учеба</option>
+                            <option value="master">Спорт</option>
+                            <option value="postgraduate">Актив</option>
+                            <option value="etc">и тд</option> <!-- понятное дело тягаются из бд, я щас это от балды написал-->
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
+                    </div>
+                    <label>Подкатегория</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите подкатегорию</option>
+                            <option value="bachelor">1</option>
+                            <option value="master">2</option>
+                            <option value="postgraduate">3</option>
+                            <option value="etc">и тд</option> <!-- понятное дело тягаются из бд, я щас это от балды написал-->
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
+                    </div>
+                    <label>Место</label>
+                    <input type="number" name="place_number" value="" min="1" max="3">
+                    <label>Грамота</label>
+                    <div class="photo-container">
+                        <div class="avatar-upload">
+                            <div class="drop-area" id="dropArea">
+                                <span class="drop-text">+<br>Добавить грамоту<br>(формат: PDF, JPG, PNG)</span>
+                                <input type="file" id="fileInput" name="certificate" multiple accept="image/*,.pdf">
+                            </div>
+                        </div>
+                    </div>
+                    <label>Количество баллов:</label>
+                    <h1 style="color: #1867AA; font-size: 35px; font-weight: bold;">8</h1>
+
+
+                    <button type="submit" class="upload-btn">Сохранить грамоту</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+        </a>
+        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025-2026 БГИТУ Портфель. Все права защищены.</span>
+        <a href="https://it.bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        </a>
+    </footer>
+
+    <script>
+        function toggleDropdown() {
+            document.getElementById("dropdown-menu").classList.toggle("show");
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.dropdown')) {
+                document.getElementById("dropdown-menu").classList.remove("show");
+            }
+        }
+
+        // Password visibility toggle
+        document.querySelector('.toggle-password').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = this.querySelector('.eye-icon');
+            const eyeClosedIcon = this.querySelector('.eye-closed-icon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.style.display = 'none';
+                eyeClosedIcon.style.display = 'block';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.style.display = 'block';
+                eyeClosedIcon.style.display = 'none';
+            }
+        });
+
+        // File upload drop area
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('avatar');
+
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                const fileName = this.files[0].name;
+                dropArea.querySelector('.drop-text').textContent = fileName;
+            }
+        });
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('dragover');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                dropArea.querySelector('.drop-text').textContent = e.dataTransfer.files[0].name;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/css/reg.css">
     <link rel="stylesheet" href="static/css/responsive.css">
-    <title>Регистрация</title>
+    <title>Регистрация нового пользователя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -35,7 +35,7 @@
         <p>Всё необходимое собрано<br>в одном месте.</p>
     </div>
     <div class="reg">
-        <h1>Регистрация</h1>
+        <h1>Регистрация нового пользователя</h1>
         {% if error %}
             <div class="error-message">{{ error }}</div>
         {% endif %}
@@ -64,14 +64,6 @@
                 </div>
 
                 <div class="right-column">
-                    <label>Аватар</label>
-                    <div class="avatar-upload">
-                        <div class="drop-area" id="dropArea">
-                            <span class="drop-text">+<br>Добавить фотографию</span>
-                            <input type="file" id="fileInput" name="avatar" accept="image/*">
-                        </div>
-                    </div>
-
                     <label>Степень обучения</label>
                     <div class="select-wrapper">
                         <select name="education_level" required>
@@ -82,6 +74,20 @@
                         </select>
                         <img src="/static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
                     </div>
+                    <label>Институт</label>
+                    <div class="select-wrapper">
+                        <select name="education_level">
+                            <option value="" disabled>Выберите институт</option>
+                            <option value="iei">Инженерно-экономический институт</option>
+                            <option value="si">Строительный институт</option>
+                            <option value="ilklatie">Институт лесного комплекса, ландшафтной архитектуры, транспорта и экологии</option>
+                        </select>
+                        <img src="static/assets/alt-arrow-down-svgrepo-com.svg" class="select-arrow" alt="Раскрыть список">
+                    </div>
+                    <label>Курс</label>
+                    <input type="number" name="course_number" value="" min="1" max="5">
+                    <label>Группа</label>
+                    <input type="text" name="group_name" value="">
 
                     <label>Пол</label>
                     <div class="radio-group">

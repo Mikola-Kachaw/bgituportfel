@@ -134,26 +134,16 @@
                 <p>{{ user.institute if user.institute else 'Не указано' }}</p>
             </div>
 
-            <div>
-                <h4 style="font-style: italic; font-weight: 300;">Интересующие категории:</h4>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    {% if user.categories %}
-                        {% for category in user.categories %}
-                        <span class="category-tag">{{ category }}</span>
-                        {% endfor %}
-                    {% else %}
-                        <span class="no-categories">Не указаны</span>
-                    {% endif %}
-                </div>
-            </div>
         </div>
         <!-- Грамоты -->
         <div style="display: flex; justify-content: space-between; color: #1867AA; margin-top: 30px;">
             <h1 style="font-size: 40px; font-weight: 300; font-style: italic;">Грамоты:</h1>
-            <button class="add-button" id="addCertificateButton">
-                <img src="/static/assets/add-circle-svgrepo-com.svg" width="27px" height="27px">
-                <span>Добавить грамоту</span>
-            </button>
+            <a href="{{ url_for('show_cert_page') }}" style="text-decoration: none;">
+                <button class="add-button"><!--id="addCertificateButton"-->
+                    <img src="/static/assets/add-circle-svgrepo-com.svg" width="27px" height="27px">
+                    <span>Добавить грамоту</span>
+                </button>
+            </a>
         </div>
 
         <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly; margin-top: 30px; gap: 40px;">
@@ -169,7 +159,7 @@
             {% endfor %}
         </div>
         <!-- Заявки -->
-        {% if applications %}
+        <!-- {% if applications %} -->
         <h1 style="font-size: 40px; font-weight: 300; font-style: italic; color: #1867AA; margin-top: 26px;">Заявки:</h1>
 
         <div style="margin-top: 20px;">
@@ -268,10 +258,10 @@
             </div>
             {% endfor %}
         </div>
-        {% endif %}
-        {% if user.role_id == 3 %}
+        <!--{% endif %}-->
+        {% if user.role_id == 2 %}
         <a href="{{ url_for('show_create_ad_page') }}" style="text-decoration: none;">
-            <button class="create-news">Создать объявление</button>
+            <button class="create-news">Подать заявку</button>
         </a>
         {%endif%}
         {% if user.role_id == 1 %}

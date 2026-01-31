@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="static/css/admin.css">
     <link rel="stylesheet" href="static/css/responsive.css">
+    <link rel="stylesheet" href="static/css/personalAccount.css">
     <title>Админ-панель</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,33 +112,19 @@
                 </tbody>
             </table>
         </div>
-
-        <h2>Объявления:</h2>
-        <div class="table-container">
-            <table class="announcements-table">
-                <tbody>
-                    {% for ad in ads %}
-                    <tr>
-                        <td class="announcement-title">{{ ad.title }} ({{ ad.organizer_name }})</td>
-                        <td class="table-actions">
-                            <form method="POST" action="{{ url_for('delete_advertisement') }}" style="display: inline;">
-                                <input type="hidden" name="ad_id" value="{{ ad.ad_id }}">
-                                <button type="submit" class="btn btn-delete" title="Удалить">
-                                    <img src="static/assets/backspace-svgrepo-com.svg" alt="Удалить">
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <a href="{{ url_for('register_page') }}" style="text-decoration: none;">
+            <button class="create-news">Создать нового пользователя</button>
+        </a>
     </div>
 
     <footer>
-        <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
-        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025 БГИТУ Портфель. Все права защищены.</span>
-        <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+        </a>
+        <span style="color: white; font-size: 20px; font-weight: bold;">© 2025-2026 БГИТУ Портфель. Все права защищены.</span>
+        <a href="https://it.bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
+            <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+        </a>
     </footer>
 
     <script>

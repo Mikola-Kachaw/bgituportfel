@@ -87,37 +87,13 @@ def show_main_page():
         if user_id and user_id.isdigit():
             user_data = db.get_user_profile(int(user_id))
 
-        # Получаем объявления/мероприятия
-        with db.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    SELECT a.ad_id, a.title, a.description, a.event_date, 
-                           c.name as category, u.last_name || ' ' || u.first_name as organizer_name,
-                           (SELECT image_url FROM advertisement_images WHERE ad_id = a.ad_id LIMIT 1) as image_url
-                    FROM advertisements a
-                    JOIN categories c ON a.category_id = c.category_id
-                    JOIN organizers o ON a.organizer_id = o.organizer_id
-                    JOIN users u ON o.user_id = u.user_id
-                    ORDER BY a.event_date DESC
-                    LIMIT 8
-                """)
-                ads_data = cursor.fetchall()
-                ads = [{
-                    'id': row[0],
-                    'title': row[1],
-                    'description': row[2],
-                    'date': row[3],
-                    'category': row[4],
-                    'organizer': row[5],
-                    'image_url': row[6]  # Добавляем URL первой фотографии
-                } for row in ads_data] if ads_data else []
-
-        return render_template('index.html', user=user_data, ads=ads, greeting=greeting)
+        return render_template('index.html', user=user_data, greeting=greeting)
     except Exception as e:
         return render_template('not_found.html', error=str(e)), 500
 
 
 @app.route('/register', methods=['GET', 'POST'])
+@admin_required
 def register_page():
     if request.method == 'POST':
         try:
@@ -505,7 +481,6 @@ def revoke_organizer():
 
 
 @app.route('/create-ad', methods=['GET'])
-@organizer_required
 def show_create_ad_page():
     user_id = request.cookies.get('user_id')
     try:
@@ -803,47 +778,47 @@ def personal_account():
         abort(500, str(e))
 
 
-@app.route('/add-certificate', methods=['POST'])
-@login_required
-def add_certificate():
-    user_id = request.cookies.get('user_id')
-    try:
-        title = request.form.get('title')
-        description = request.form.get('description')
-
-        # Проверяем обязательные поля
-        if not title or not request.files.get('image'):
-            flash('Название и изображение обязательны для заполнения', 'error')
-            return redirect(url_for('personal_account'))
-
-        # Обработка изображения грамоты
-        file = request.files['image']
-        if file and allowed_file(file.filename):
-            # Создаем папку пользователя, если ее нет
-            user_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{user_id}')
-            if not os.path.exists(user_folder):
-                os.makedirs(user_folder)
-
-            # Генерируем уникальное имя файла
-            ext = file.filename.split('.')[-1].lower()
-            filename = f"cert_{uuid.uuid4().hex}.{ext}"
-            file_path = os.path.join(user_folder, filename)
-            file.save(file_path)
-
-            # Сохраняем относительный путь
-            image_url = f"uploads/user_{user_id}/{filename}"
-
-            # Добавляем грамоту в базу данных
-            db.add_certificate(int(user_id), title, description, image_url)
-            flash('Грамота успешно добавлена!', 'success')
-        else:
-            flash('Недопустимый формат файла', 'error')
-
-        return redirect(url_for('personal_account'))
-    except Exception as e:
-        app.logger.error(f"Ошибка при добавлении грамоты: {str(e)}")
-        flash('Произошла ошибка при добавлении грамоты', 'error')
-        return redirect(url_for('personal_account'))
+# @app.route('/add-certificate', methods=['POST'])
+# @login_required
+# def add_certificate():
+#     user_id = request.cookies.get('user_id')
+#     try:
+#         title = request.form.get('title')
+#         description = request.form.get('description')
+#
+#         # Проверяем обязательные поля
+#         if not title or not request.files.get('image'):
+#             flash('Название и изображение обязательны для заполнения', 'error')
+#             return redirect(url_for('personal_account'))
+#
+#         # Обработка изображения грамоты
+#         file = request.files['image']
+#         if file and allowed_file(file.filename):
+#             # Создаем папку пользователя, если ее нет
+#             user_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{user_id}')
+#             if not os.path.exists(user_folder):
+#                 os.makedirs(user_folder)
+#
+#             # Генерируем уникальное имя файла
+#             ext = file.filename.split('.')[-1].lower()
+#             filename = f"cert_{uuid.uuid4().hex}.{ext}"
+#             file_path = os.path.join(user_folder, filename)
+#             file.save(file_path)
+#
+#             # Сохраняем относительный путь
+#             image_url = f"uploads/user_{user_id}/{filename}"
+#
+#             # Добавляем грамоту в базу данных
+#             db.add_certificate(int(user_id), title, description, image_url)
+#             flash('Грамота успешно добавлена!', 'success')
+#         else:
+#             flash('Недопустимый формат файла', 'error')
+#
+#         return redirect(url_for('personal_account'))
+#     except Exception as e:
+#         app.logger.error(f"Ошибка при добавлении грамоты: {str(e)}")
+#         flash('Произошла ошибка при добавлении грамоты', 'error')
+#         return redirect(url_for('personal_account'))
 
 
 @app.route('/update-application-status', methods=['POST'])
@@ -893,6 +868,21 @@ def delete_image(image_id):
                 return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+
+
+### ДЕБАГ-РОУТЫ ###
+@app.route('/add-certificate')
+def show_cert_page():
+    try:
+        user_id = request.cookies.get('user_id')
+        user_data = None
+        if user_id and user_id.isdigit():
+            user_data = db.get_user_profile(int(user_id))
+
+        return render_template('add-certificate.html', user=user_data)
+    except Exception as e:
+        return render_template('not_found.html', error=str(e)), 500
+
 
 
 def main():
