@@ -1,49 +1,4 @@
-        // Подкатегории для каждой категории
-        const subcategories = {
-            'study': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'performance_excellent', text: 'Успеваемость "отлично"'},
-                {value: 'performance_good', text: 'Успеваемость "хорошо" и "отлично"'},
-                {value: 'olympiads_international', text: 'Олимпиады международные'},
-                {value: 'olympiads_russian', text: 'Олимпиады российские/областные'},
-                {value: 'olympiads_university', text: 'Олимпиады вузовские'},
-                {value: 'additional_programs', text: 'Дополнительные образовательные программы'}
-            ],
-            'research': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'science_competitions_international', text: 'Научные конкурсы международные'},
-                {value: 'science_competitions_russian', text: 'Научные конкурсы российские/областные'},
-                {value: 'science_competitions_university', text: 'Научные конкурсы вузовские'},
-                {value: 'publications_vak', text: 'Публикации ВАК/РИНЦ'},
-                {value: 'publications_other', text: 'Публикации прочие'},
-                {value: 'conferences', text: 'Участие в научных конференциях'}
-            ],
-            'creative': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'competitions_international', text: 'Конкурсы международные'},
-                {value: 'competitions_russian', text: 'Конкурсы российские/областные'},
-                {value: 'competitions_university', text: 'Конкурсы вузовские'}
-            ],
-            'sport': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'msmk', text: 'Мастер спорта международного класса'},
-                {value: 'team_russia', text: 'Член Сборной России'},
-                {value: 'competitions_world', text: 'Чемпионат мира'},
-                {value: 'competitions_russia', text: 'Чемпионат России'},
-                {value: 'competitions_cfo', text: 'Чемпионат ЦФО'},
-                {value: 'competitions_region', text: 'Чемпионат области'},
-                {value: 'sport_promo', text: 'Популяризация спорта'}
-            ],
-            'social': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'starosta', text: 'Староста'},
-                {value: 'profsoyuz', text: 'Профсоюзная работа/студсовет'},
-                {value: 'volunteer', text: 'Волонтерская деятельность'},
-                {value: 'proforientation', text: 'Профориентационная работа/летние лагеря'}
-            ]
-        };
-
-        // Массив выбранных файлов
+        // Глобальные переменные
         let selectedFiles = [];
 
         // Функции для работы с модальными окнами
@@ -51,150 +6,162 @@
             document.getElementById("dropdown-menu").classList.toggle("show");
         }
 
-        function showCertificateModal(title, description, imageUrl) {
-            document.getElementById('certificate-title').textContent = title;
-            document.getElementById('certificate-description').textContent = description;
-
-            const imageContainer = document.getElementById('certificate-image-container');
-            imageContainer.innerHTML = '';
-            if (imageUrl) {
-                const img = document.createElement('img');
-                img.src = '/' + imageUrl;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '400px';
-                img.style.borderRadius = '10px';
-                img.style.objectFit = 'contain';
-                imageContainer.appendChild(img);
-            }
-
-            document.getElementById('certificateModal').style.display = 'block';
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
 
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Просмотр грамоты
+        function showCertificateModal(certId, title, description, fileUrl) {
+            document.getElementById('viewCertificateTitle').textContent = title;
+            document.getElementById('viewCertificateDescription').textContent = description || 'Нет описания';
+
+            const imageContainer = document.getElementById('viewCertificateImageContainer');
+            const pdfContainer = document.getElementById('viewCertificatePdfContainer');
+            const pdfViewer = document.getElementById('pdfViewer');
+
+            // Очищаем контейнеры
+            imageContainer.innerHTML = '';
+            pdfContainer.style.display = 'none';
+
+            // Проверяем тип файла
+            const isPdf = fileUrl.toLowerCase().endsWith('.pdf');
+
+            if (isPdf) {
+                // Для PDF файлов
+                pdfViewer.src = fileUrl + '#toolbar=0&navpanes=0&scrollbar=0';
+                pdfContainer.style.display = 'block';
+            } else {
+                // Для изображений
+                if (fileUrl && fileUrl !== 'None') {
+                    const img = document.createElement('img');
+                    img.src = fileUrl;
+                    img.style.maxWidth = '100%';
+                    img.style.maxHeight = '500px';
+                    img.style.borderRadius = '10px';
+                    img.style.objectFit = 'contain';
+                    imageContainer.appendChild(img);
+                } else {
+                    imageContainer.innerHTML = '<p style="color: #666;">Изображение не загружено</p>';
+                }
+            }
+
+            openModal('viewCertificateModal');
+        }
+
+        // Редактирование грамоты
+        function openEditCertificateModal(certId, title, description) {
+            document.getElementById('editCertificateId').value = certId;
+            document.getElementById('editCertificateTitle').value = title;
+            document.getElementById('editCertificateDescription').value = description || '';
+            openModal('editCertificateModal');
+        }
+
+        // Добавление грамоты
         function openAddCertificateModal() {
-            document.getElementById('addCertificateModal').style.display = 'flex';
-            resetForm();
+            openModal('addCertificateModal');
+            resetAddCertificateForm();
         }
 
         function closeAddCertificateModal() {
-            document.getElementById('addCertificateModal').style.display = 'none';
-            resetForm();
+            closeModal('addCertificateModal');
+            resetAddCertificateForm();
         }
 
-        function resetForm() {
+        function resetAddCertificateForm() {
             document.getElementById('addCertificateForm').reset();
             selectedFiles = [];
             updateFilePreview();
-            updateSubmitButton();
-            updateSubcategories();
+            hideAllPreviews();
         }
 
-        // Обновление подкатегорий при изменении категории
-        document.getElementById('certificateCategory').addEventListener('change', function() {
-            updateSubcategories();
-        });
-
-        function updateSubcategories() {
-            const category = document.getElementById('certificateCategory').value;
-            const subcategorySelect = document.getElementById('certificateSubcategory');
-
-            subcategorySelect.innerHTML = '';
-
-            if (category && subcategories[category]) {
-                subcategories[category].forEach(option => {
-                    const opt = document.createElement('option');
-                    opt.value = option.value;
-                    opt.textContent = option.text;
-                    subcategorySelect.appendChild(opt);
-                });
-            } else {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'Выберите подкатегорию';
-                subcategorySelect.appendChild(opt);
-            }
+        // Скрыть все предпросмотры
+        function hideAllPreviews() {
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('pdfPreview').style.display = 'none';
         }
 
         // Работа с файлами
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('fileInput');
+        document.getElementById('dropArea').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
 
-        dropArea.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', function(e) {
+        document.getElementById('fileInput').addEventListener('change', function(e) {
             handleFiles(e.target.files);
         });
 
-        dropArea.addEventListener('dragover', (e) => {
+        document.getElementById('dropArea').addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropArea.classList.add('dragover');
+            document.getElementById('dropArea').classList.add('dragover');
         });
 
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('dragover');
+        document.getElementById('dropArea').addEventListener('dragleave', () => {
+            document.getElementById('dropArea').classList.remove('dragover');
         });
 
-        dropArea.addEventListener('drop', (e) => {
+        document.getElementById('dropArea').addEventListener('drop', (e) => {
             e.preventDefault();
-            dropArea.classList.remove('dragover');
-
-            if (e.dataTransfer.files.length) {
-                handleFiles(e.dataTransfer.files);
-            }
+            document.getElementById('dropArea').classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
         });
 
         function handleFiles(files) {
-            const newFiles = Array.from(files).filter(file => {
-                // Проверка формата файла
-                const validTypes = [
-                    'application/pdf',
-                    'image/jpeg',
-                    'image/jpg',
-                    'image/png',
-                    'image/gif',
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                ];
-                return validTypes.includes(file.type) ||
-                       file.name.toLowerCase().endsWith('.pdf') ||
-                       file.name.toLowerCase().endsWith('.jpg') ||
-                       file.name.toLowerCase().endsWith('.jpeg') ||
-                       file.name.toLowerCase().endsWith('.png') ||
-                       file.name.toLowerCase().endsWith('.doc') ||
-                       file.name.toLowerCase().endsWith('.docx');
-            });
+            const validTypes = [
+                'image/jpeg',
+                'image/jpg',
+                'image/png',
+                'image/gif',
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ];
 
-            // Добавляем только новые файлы
-            newFiles.forEach(newFile => {
-                const existingFile = selectedFiles.find(f =>
-                    f.name === newFile.name && f.size === newFile.size
-                );
-                if (!existingFile) {
-                    selectedFiles.push(newFile);
+            // Очищаем предыдущие файлы
+            selectedFiles = [];
+
+            Array.from(files).forEach(file => {
+                if (validTypes.includes(file.type) ||
+                    file.name.toLowerCase().endsWith('.pdf') ||
+                    file.name.toLowerCase().endsWith('.doc') ||
+                    file.name.toLowerCase().endsWith('.docx')) {
+
+                    selectedFiles.push(file);
                 }
             });
 
             updateFilePreview();
-            updateSubmitButton();
+
+            // Показываем предпросмотр первого файла
+            if (selectedFiles.length > 0) {
+                previewFile(selectedFiles[0]);
+            }
         }
 
         function removeFile(index) {
             selectedFiles.splice(index, 1);
             updateFilePreview();
-            updateSubmitButton();
+
+            // Показываем предпросмотр нового первого файла, если есть
+            if (selectedFiles.length > 0) {
+                previewFile(selectedFiles[0]);
+            } else {
+                hideAllPreviews();
+            }
         }
 
         function updateFilePreview() {
             const previewList = document.getElementById('filePreviewList');
             const previewContainer = document.getElementById('filePreviewContainer');
-            const imagePreview = document.getElementById('imagePreview');
-            const documentPreview = document.getElementById('documentPreview');
 
             previewList.innerHTML = '';
 
             if (selectedFiles.length === 0) {
                 previewContainer.style.display = 'none';
-                imagePreview.style.display = 'none';
-                documentPreview.style.display = 'none';
                 return;
             }
 
@@ -204,18 +171,17 @@
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-preview-item';
 
-                const fileExt = file.name.split('.').pop().toLowerCase();
-                const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExt);
-                const isPDF = fileExt === 'pdf';
-                const isWord = ['doc', 'docx'].includes(fileExt);
+                const isImage = file.type.startsWith('image/');
+                const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                const isWord = file.type.includes('word') || file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx');
 
-                let iconText = '📄';
-                if (isImage) iconText = '🖼️';
-                if (isPDF) iconText = '📕';
-                if (isWord) iconText = '📝';
+                let icon = '📄';
+                if (isImage) icon = '🖼️';
+                if (isPDF) icon = '📕';
+                if (isWord) icon = '📝';
 
                 fileItem.innerHTML = `
-                    <div class="file-preview-icon">${iconText}</div>
+                    <div class="file-preview-icon">${icon}</div>
                     <div class="file-preview-info">
                         <div class="file-preview-name">${file.name}</div>
                         <div class="file-preview-size">${formatFileSize(file.size)}</div>
@@ -223,63 +189,57 @@
                     <button class="file-preview-remove" onclick="removeFile(${index})">&times;</button>
                 `;
 
-                // Добавляем обработчик для предпросмотра
-                if (isImage) {
-                    fileItem.style.cursor = 'pointer';
-                    fileItem.addEventListener('click', () => previewImage(file));
-                } else if (isPDF || isWord) {
-                    fileItem.style.cursor = 'pointer';
-                    fileItem.addEventListener('click', () => previewDocument(file));
-                }
+                // Клик по файлу показывает его предпросмотр
+                fileItem.style.cursor = 'pointer';
+                fileItem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    previewFile(file);
+                });
 
                 previewList.appendChild(fileItem);
             });
         }
 
-        function previewImage(file) {
-            const imagePreview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            const documentPreview = document.getElementById('documentPreview');
+        function previewFile(file) {
+            const isImage = file.type.startsWith('image/');
+            const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
-            documentPreview.style.display = 'none';
+            hideAllPreviews();
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                imagePreview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
+            if (isImage) {
+                const imagePreview = document.getElementById('imagePreview');
+                const previewImage = document.getElementById('previewImage');
 
-        function previewDocument(file) {
-            const imagePreview = document.getElementById('imagePreview');
-            const documentPreview = document.getElementById('documentPreview');
-            const previewDocument = document.getElementById('previewDocument');
-
-            imagePreview.style.display = 'none';
-
-            // Для PDF файлов
-            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Создаем объект URL для PDF
-                    const pdfUrl = e.target.result;
-                    previewDocument.src = pdfUrl;
-                    documentPreview.style.display = 'block';
+                    previewImage.src = e.target.result;
+                    imagePreview.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
-            }
-            // Для Word документов - показываем сообщение
-            else if (file.type.includes('word') || file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx')) {
-                documentPreview.innerHTML = `
+            } else if (isPDF) {
+                const pdfPreview = document.getElementById('pdfPreview');
+                const pdfPreviewFrame = document.getElementById('pdfPreviewFrame');
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Создаем Blob URL для PDF
+                    const blob = new Blob([e.target.result], {type: 'application/pdf'});
+                    const blobUrl = URL.createObjectURL(blob);
+                    pdfPreviewFrame.src = blobUrl + '#toolbar=0&navpanes=0&scrollbar=0';
+                    pdfPreview.style.display = 'block';
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                // Для других типов файлов показываем сообщение
+                const imagePreview = document.getElementById('imagePreview');
+                imagePreview.innerHTML = `
                     <div style="text-align: center; padding: 40px;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
-                        <h3 style="color: #1867AA;">Документ Word</h3>
-                        <p>${file.name}</p>
-                        <p style="color: #666; margin-top: 20px;">Для просмотра содержимого необходимо скачать файл</p>
+                        <div style="font-size: 48px; margin-bottom: 20px;">📄</div>
+                        <h3 style="color: #1867AA;">${file.name}</h3>
+                        <p style="color: #666;">Предпросмотр недоступен для этого типа файла</p>
                     </div>
                 `;
-                documentPreview.style.display = 'block';
+                imagePreview.style.display = 'block';
             }
         }
 
@@ -291,91 +251,36 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        function updateSubmitButton() {
-            const title = document.getElementById('certificateTitle').value.trim();
-            const category = document.getElementById('certificateCategory').value;
-            const hasFiles = selectedFiles.length > 0;
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = !(title && category && hasFiles);
-        }
-
-        // Обновление состояния кнопки при вводе
-        document.getElementById('certificateTitle').addEventListener('input', updateSubmitButton);
-        document.getElementById('certificateCategory').addEventListener('change', updateSubmitButton);
-
-        // Обработка формы
+        // Обработка формы добавления грамоты
         document.getElementById('addCertificateForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Проверка обязательных полей
             const title = document.getElementById('certificateTitle').value.trim();
-            const category = document.getElementById('certificateCategory').value;
+            const fileInput = document.getElementById('fileInput');
 
             if (!title) {
+                e.preventDefault();
                 alert('Пожалуйста, введите название грамоты');
                 return;
             }
 
-            if (!category) {
-                alert('Пожалуйста, выберите категорию');
-                return;
-            }
-
-            if (selectedFiles.length === 0) {
+            if (selectedFiles.length === 0 && fileInput.files.length === 0) {
+                e.preventDefault();
                 alert('Пожалуйста, выберите файл грамоты');
                 return;
             }
 
-            // Создаем FormData для отправки
-            const formData = new FormData(this);
-
-            // Добавляем все файлы
-            selectedFiles.forEach(file => {
-                formData.append('files[]', file);
-            });
-
-            // Отправляем форму
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    return response.json();
-                }
-            })
-            .then(data => {
-                if (data && data.success) {
-                    closeAddCertificateModal();
-                    location.reload();
-                } else if (data && data.error) {
-                    alert('Ошибка: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Произошла ошибка при отправке формы');
-            });
-        });
-
-        // Закрытие модальных окон
-        window.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-            if (event.target.id === 'addCertificateModal') {
-                closeAddCertificateModal();
+            // Освобождаем Blob URLs при отправке формы
+            const pdfPreviewFrame = document.getElementById('pdfPreviewFrame');
+            if (pdfPreviewFrame.src && pdfPreviewFrame.src.startsWith('blob:')) {
+                URL.revokeObjectURL(pdfPreviewFrame.src);
             }
         });
 
         // Обновление статуса заявки
         function updateApplicationStatus(applicationId, status) {
+            if (!confirm('Вы уверены, что хотите изменить статус заявки?')) {
+                return;
+            }
+
             fetch("{{ url_for('update_application_status') }}", {
                 method: 'POST',
                 headers: {
@@ -390,10 +295,62 @@
                 } else {
                     alert('Ошибка: ' + data.error);
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при обновлении статуса');
             });
         }
 
-        // Инициализация при загрузке
+        // Закрытие модальных окон при клике вне контента
+        window.addEventListener('click', function(event) {
+            const modals = ['viewCertificateModal', 'editCertificateModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal && event.target === modal) {
+                    closeModal(modalId);
+                }
+            });
+
+            const addModal = document.getElementById('addCertificateModal');
+            if (addModal && event.target === addModal) {
+                closeAddCertificateModal();
+            }
+        });
+
+        // Закрытие модальных окон при нажатии Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal('viewCertificateModal');
+                closeModal('editCertificateModal');
+                closeAddCertificateModal();
+            }
+        });
+
+        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
-            updateSubcategories();
+            // Закрытие выпадающего меню при клике вне его
+            window.onclick = function(event) {
+                if (!event.target.matches('button')) {
+                    const dropdowns = document.getElementsByClassName("dropdown-content");
+                    for (let i = 0; i < dropdowns.length; i++) {
+                        const openDropdown = dropdowns[i];
+                        if (openDropdown.classList.contains('show')) {
+                            openDropdown.classList.remove('show');
+                        }
+                    }
+                }
+            };
+
+            // Освобождаем Blob URLs при закрытии страницы
+            window.addEventListener('beforeunload', function() {
+                const pdfPreviewFrame = document.getElementById('pdfPreviewFrame');
+                const pdfViewer = document.getElementById('pdfViewer');
+
+                [pdfPreviewFrame, pdfViewer].forEach(iframe => {
+                    if (iframe.src && iframe.src.startsWith('blob:')) {
+                        URL.revokeObjectURL(iframe.src);
+                    }
+                });
+            });
         });

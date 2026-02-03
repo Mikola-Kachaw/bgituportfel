@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/profile.css">
-    <link rel="stylesheet" href="static/css/responsive.css">
+    <link rel="stylesheet" href="/static/css/personalAccount.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
     <title>Профиль пользователя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/static/js/script.js" defer></script>
+    <script src="/static/js/script4.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="apple-touch-icon" sizes="57x57" href="/static/assets/favicons/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/static/assets/favicons/apple-icon-60x60.png">
@@ -28,23 +30,6 @@
     <meta name="theme-color" content="#ffffff">
 </head>
 <body>
-    <!-- Модальное окно для грамот -->
-    <div id="myModal" class="modal">
-        <div class="modal-content">
-            <div style="display: flex; gap: 50px;">
-                <div style="background-color: black; width: 50%; height: auto;"></div>
-                <div style="width: 50%;">
-                    <h2 style="font-size: 30px; font-weight: bold;" id="certificate-title">Название грамоты</h2>
-                    <h4 style="font-style: italic; font-size: 20px; font-weight: 300; margin-top: 26px;">Описание:</h4>
-                    <p style="font-size: 20px;" id="certificate-description">Описание грамоты</p>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: end;">
-                <button class="close-btn" id="close-btn">Закрыть</button>
-            </div>
-        </div>
-    </div>
-
     <header>
         <nav>
             <a href="{{ url_for('show_main_page') }}" style="display: flex; align-items: center; text-decoration: none;">
@@ -82,20 +67,20 @@
     </header>
 
     <div style="padding: 30px 114px; background-color: #1867AA; display: flex; align-items: center; gap: 50px;">
-    {% if viewed_user.avatar_url %}
-        <img src="{{ url_for('static', filename=viewed_user.avatar_url) }}" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
-    {% else %}
-        <div style="background-color: white; width: 150px; height: 150px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #bdbdbd;">
-            <img src="{{ url_for('static', filename='assets/user-svgrepo-com.svg') }}" style="width: 60px; height: 60px;">
+        {% if user.avatar_url %}
+            <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+        {% else %}
+            <div style="background-color: white; width: 150px; height: 150px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #bdbdbd;">
+                <img src="{{ url_for('static', filename='assets/user-svgrepo-com.svg') }}" style="width: 60px; height: 60px;">
+            </div>
+        {% endif %}
+        <div>
+            <h1 style="color: white; font-size: 45px; font-weight: bold;">{{ user.last_name }} {{ user.first_name }} {{ user.patronymic }}</h1>
+            <span style="color: rgba(255, 255, 255, 0.434); font-size: 20px; font-style: italic; font-weight: 300;">
+                {% if user.role_id == 1 %}Администратор{% elif user.role_id == 3 %}Организатор{% else %}Обычный пользователь{% endif %}
+            </span>
         </div>
-    {% endif %}
-    <div>
-        <h1 style="color: white; font-size: 45px; font-weight: bold;">{{ viewed_user.last_name }} {{ viewed_user.first_name }} {{ viewed_user.patronymic }}</h1>
-        <span style="color: rgba(255, 255, 255, 0.434); font-size: 20px; font-style: italic; font-weight: 300;">
-            {% if viewed_user.role_id == 1 %}Администратор{% elif viewed_user.role_id == 3 %}Организатор{% else %}Обычный пользователь{% endif %}
-        </span>
     </div>
-</div>
 
     <div style="padding: 20px 72px 78px 114px">
         <div style="display: flex; justify-content: space-between; color: #1867AA;">
@@ -125,10 +110,6 @@
                 <p>{{ user.email }}</p>
             </div>
             <div>
-                <h4 style="font-style: italic; font-weight: 300;">Дата регистрации:</h4>
-                <p>{{ user.registration_date.strftime('%d.%m.%Y') }}</p>
-            </div>
-            <div>
                 <h4 style="font-style: italic; font-weight: 300;">Институт:</h4>
                 <p>{{ user.institute if user.institute else 'Не указано' }}</p>
             </div>
@@ -137,20 +118,47 @@
         <div style="display: flex; justify-content: space-between; color: #1867AA; margin-top: 30px;">
             <h1 style="font-size: 40px; font-weight: 300; font-style: italic;">Грамоты:</h1>
         </div>
-
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly; margin-top: 30px; gap: 40px;">
+        <!-- Список грамот -->
+        <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 30px;">
             {% for cert in certificates %}
-            <div class="card-diplom" onclick="showCertificateModal('{{ cert.title }}', '{{ cert.description }}')">
-                {% if cert.image_url %}
-                    <img src="{{ url_for('static', filename=cert.image_url) }}" style="width: 100%; height: 80%; margin-bottom: 8px; border-radius: 26px; object-fit: cover;">
+            <div class="card-diplom" onclick="showCertificateModal('{{ cert.certificate_id }}', '{{ cert.title }}', '{{ cert.description }}', '{{ url_for('static', filename=cert.image_url) }}')">
+                {% if cert.image_url.endswith('.pdf') %}
+                    <div class="card-diplom-pdf-placeholder">
+                        <div class="card-diplom-pdf-icon">📕</div>
+                        <span class="card-diplom-pdf-text">PDF документ</span>
+                    </div>
                 {% else %}
-                    <div style="background-color: black; width: 100%; height: 80%; margin-bottom: 8px; border-radius: 26px;"></div>
+                    <div class="card-diplom-image-container">
+                        <img src="{{ url_for('static', filename=cert.image_url) }}" alt="{{ cert.title }}">
+                    </div>
                 {% endif %}
-                <p style="text-align: center; font-size: 19px;">{{ cert.title }}</p>
+                <p>{{ cert.title }}</p>
             </div>
             {% endfor %}
         </div>
+
     </div>
+
+    <!-- Модальное окно просмотра грамоты -->
+    <div id="viewCertificateModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <h2 id="viewCertificateTitle" style="color: #1867AA; margin-bottom: 15px;"></h2>
+            <p id="viewCertificateDescription" style="margin-bottom: 20px; color: #666;"></p>
+
+            <!-- Контейнер для изображения -->
+            <div id="viewCertificateImageContainer" style="text-align: center; margin-bottom: 20px;"></div>
+
+            <!-- Контейнер для PDF -->
+            <div id="viewCertificatePdfContainer" class="pdf-preview" style="display: none;">
+                <iframe id="pdfViewer" class="pdf-viewer" src=""></iframe>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="closeModal('viewCertificateModal')" style="padding: 10px 30px; background-color: #1867AA; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
 
     <footer>
         <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
@@ -161,33 +169,5 @@
             <img src="/static/assets/logo_IT_bely.png" width="55px" height="59px">
         </a>
     </footer>
-
-    <script>
-        function toggleDropdown() {
-            document.getElementById("dropdown-menu").classList.toggle("show");
-        }
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.dropdown')) {
-                document.getElementById("dropdown-menu").classList.remove("show");
-            }
-        }
-
-        function showCertificateModal(title, description) {
-            document.getElementById('certificate-title').textContent = title;
-            document.getElementById('certificate-description').textContent = description;
-            document.getElementById('myModal').style.display = 'block';
-        }
-
-        document.getElementById('close-btn').addEventListener('click', function() {
-            document.getElementById('myModal').style.display = 'none';
-        });
-
-        window.onclick = function(event) {
-            if (event.target === document.getElementById('myModal')) {
-                document.getElementById('myModal').style.display = 'none';
-            }
-        };
-    </script>
 </body>
 </html>

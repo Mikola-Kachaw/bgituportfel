@@ -559,44 +559,69 @@ class Database:
             self.conn.rollback()
             raise ValueError(f"Ошибка при создании объявления: {e}")
 
-    def get_user_certificates(self, user_id: int):
-        """Получение грамот пользователя"""
-        try:
-            with self.conn.cursor() as cursor:
+    def get_user_certificates(self, user_id):
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
                 cursor.execute("""
                     SELECT certificate_id, title, description, image_url, upload_date
                     FROM user_certificates
                     WHERE user_id = %s
                     ORDER BY upload_date DESC
                 """, (user_id,))
+                rows = cursor.fetchall()
 
-                result = cursor.fetchall()
-                if result:
-                    columns = [desc[0] for desc in cursor.description]
-                    return [dict(zip(columns, row)) for row in result]
-                return []
-        except Exception as e:
-            print(f"Ошибка при получении грамот: {e}")
-            return []
+        return [
+            {
+                "certificate_id": r[0],
+                "title": r[1],
+                "description": r[2],
+                "image_url": r[3],
+                "upload_date": r[4]
+            }
+            for r in rows
+        ]
 
-    def add_certificate(self, user_id: int, title: str, description: str, image_url: str):
-        """Добавление грамоты пользователя с поддержкой нескольких файлов"""
+    def add_certificate(self, user_id, title, description, image_url):
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO user_certificates 
-                    (user_id, title, description, image_url)
+                    INSERT INTO user_certificates (user_id, title, description, image_url)
                     VALUES (%s, %s, %s, %s)
-                    RETURNING certificate_id
                 """, (user_id, title, description, image_url))
-
-                certificate_id = cursor.fetchone()[0]
-
                 self.conn.commit()
-                return True
         except psycopg2.Error as e:
             self.conn.rollback()
             raise ValueError(f"Ошибка при добавлении грамоты: {e}")
+
+    def update_certificate(self, cert_id, user_id, title, description):
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE user_certificates
+                    SET title = %s, description = %s
+                    WHERE certificate_id = %s AND user_id = %s
+                """, (title, description, cert_id, user_id))
+                conn.commit()
+
+    def delete_certificate(self, cert_id, user_id):
+        with self.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT image_url FROM user_certificates
+                    WHERE certificate_id = %s AND user_id = %s
+                """, (cert_id, user_id))
+                row = cursor.fetchone()
+
+                if not row:
+                    return None
+
+                cursor.execute("""
+                    DELETE FROM user_certificates
+                    WHERE certificate_id = %s AND user_id = %s
+                """, (cert_id, user_id))
+                conn.commit()
+
+        return row[0]
 
     def assign_organizer_role(self, admin_id: int, user_id: int):
         """Назначение пользователю роли организатора"""

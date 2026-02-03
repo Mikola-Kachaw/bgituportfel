@@ -8,7 +8,6 @@ from werkzeug.security import generate_password_hash
 import uuid
 
 UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24).hex()
@@ -30,7 +29,7 @@ app.jinja_env.filters['datetimeformat'] = datetimeformat
 
 
 def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx'}
 
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -67,6 +66,17 @@ def organizer_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
+@app.context_processor
+def utility_processor():
+    def format_date(date, format='%d.%m.%Y'):
+        if date is None:
+            return ""
+        try:
+            return date.strftime(format)
+        except:
+            return ""
+    return dict(format_date=format_date)
 
 
 @app.route('/')
@@ -440,118 +450,6 @@ def show_create_ad_page():
         )
     except Exception as e:
         abort(500, f"Ошибка при загрузке формы: {str(e)}")
-
-
-@app.route('/create-ad', methods=['POST'])
-@organizer_required
-def create_ad():
-    user_id = request.cookies.get('user_id')
-    if not user_id or not user_id.isdigit():
-        abort(403, "Доступ запрещён")
-
-    try:
-        user = db.get_user_profile(int(user_id))
-        if not user:
-            abort(404, "Пользователь не найден")
-
-        # Получаем данные формы
-        form_data = {
-            'title': request.form.get('title'),
-            'description': request.form.get('description'),
-            'requirements': request.form.get('requirements', ''),
-            'rewards': request.form.get('rewards', ''),
-            'event_date': request.form.get('event_date'),
-            'category': request.form.get('category')
-        }
-
-        # Валидация
-        if not all([form_data['title'], form_data['description'], form_data['event_date'], form_data['category']]):
-            raise ValueError("Все обязательные поля должны быть заполнены")
-
-        with db.get_connection() as conn:
-            with conn.cursor() as cursor:
-                # Получаем ID категории
-                cursor.execute("SELECT category_id FROM categories WHERE name = %s", (form_data['category'],))
-                category_result = cursor.fetchone()
-                if not category_result:
-                    raise ValueError("Указанная категория не найдена")
-                category_id = category_result[0]
-
-                # Проверяем и создаем организатора, если его нет
-                cursor.execute("SELECT organizer_id FROM organizers WHERE user_id = %s", (user_id,))
-                organizer_result = cursor.fetchone()
-
-                if not organizer_result:
-                    # Создаем запись организатора, если её нет
-                    cursor.execute("""
-                        INSERT INTO organizers (user_id, organization, position)
-                        VALUES (%s, 'Не указано', 'Организатор')
-                        RETURNING organizer_id
-                    """, (user_id,))
-                    organizer_id = cursor.fetchone()[0]
-                else:
-                    organizer_id = organizer_result[0]
-
-                # Создаём объявление
-                cursor.execute("""
-                    INSERT INTO advertisements 
-                    (title, description, requirements, rewards,
-                     event_date, category_id, organizer_id, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
-                    RETURNING ad_id
-                """, (
-                    form_data['title'],
-                    form_data['description'],
-                    form_data['requirements'],
-                    form_data['rewards'],
-                    form_data['event_date'],
-                    category_id,
-                    organizer_id
-                ))
-
-                ad_id = cursor.fetchone()[0]
-
-                # Обработка фотографий
-                if 'images' in request.files:
-                    files = request.files.getlist('images')
-                    for file in files:
-                        if file and allowed_file(file.filename):
-                            # Создаем папку для фотографий объявления
-                            ad_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'ad-{ad_id}')
-                            if not os.path.exists(ad_folder):
-                                os.makedirs(ad_folder)
-
-                            filename = secure_filename(f"{uuid.uuid4().hex}_{file.filename}")
-                            file_path = os.path.join(ad_folder, filename)
-                            file.save(file_path)
-
-                            # Сохраняем относительный путь от static с правильными слешами
-                            relative_path = f"uploads/ad-{ad_id}/{filename}"  # Используем прямые слеши
-                            cursor.execute("""
-                                INSERT INTO advertisement_images (ad_id, image_url)
-                                VALUES (%s, %s)
-                            """, (ad_id, relative_path))
-
-                conn.commit()
-
-        return redirect(url_for('show_advertisement', ad_id=ad_id))
-
-    except Exception as e:
-        app.logger.error(f"Ошибка при создании объявления: {str(e)}")
-
-        # Получаем список категорий для повторного отображения формы
-        with db.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT name FROM categories ORDER BY name")
-                categories = [row[0] for row in cursor.fetchall()]
-
-        return render_template(
-            "create-ad.html",
-            user=user,
-            categories=categories,
-            form_data=form_data,
-            error=str(e)
-        ), 400
 
 
 @app.route('/edit-account', methods=['GET'])
@@ -928,55 +826,75 @@ def delete_image(image_id):
 @app.route('/add-certificate', methods=['POST'])
 @login_required
 def add_certificate():
-    user_id = request.cookies.get('user_id')
+    user_id = int(request.cookies.get('user_id'))
+
     try:
         title = request.form.get('title')
         description = request.form.get('description')
+        file = request.files.get('image')
 
-        # Проверяем обязательные поля
-        if not title:
-            flash('Название грамоты обязательно для заполнения', 'error')
+        if not title or not file:
+            flash('Название и изображение обязательны', 'error')
             return redirect(url_for('personal_account'))
 
-        # Проверяем наличие файла
-        if 'image' not in request.files:
-            flash('Необходимо загрузить файл грамоты', 'error')
+        # Проверка расширения файла
+        if not allowed_file(file.filename):
+            flash('Недопустимый формат файла. Разрешены: png, jpg, jpeg, gif', 'error')
             return redirect(url_for('personal_account'))
 
-        file = request.files['image']
+        # Создание уникального имени файла
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
 
-        if file.filename == '':
-            flash('Не выбран файл', 'error')
-            return redirect(url_for('personal_account'))
+        # Создание папки пользователя
+        user_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{user_id}')
+        os.makedirs(user_folder, exist_ok=True)
 
-        if file and allowed_file(file.filename):
-            # Создаем папку пользователя для грамот
-            user_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{user_id}', 'certificates')
-            if not os.path.exists(user_folder):
-                os.makedirs(user_folder)
+        # Сохранение файла
+        file_path = os.path.join(user_folder, unique_filename)
+        file.save(file_path)
 
-            # Генерируем уникальное имя файла
-            ext = file.filename.split('.')[-1].lower()
-            filename = f"cert_{uuid.uuid4().hex}.{ext}"
-            file_path = os.path.join(user_folder, filename)
-            file.save(file_path)
+        # Относительный путь для базы данных
+        image_url = f'uploads/user_{user_id}/{unique_filename}'
 
-            # Сохраняем относительный путь
-            file_url = f"uploads/user_{user_id}/certificates/{filename}"
+        # Сохранение в базу данных
+        db.add_certificate(user_id, title, description, image_url)
 
-            # Добавляем только ОДНУ грамоту в базу данных
-            db.add_certificate(int(user_id), title, description or "", file_url)
-
-            flash('Грамота успешно добавлена!', 'success')
-            return redirect(url_for('personal_account'))
-        else:
-            flash('Недопустимый формат файла', 'error')
-            return redirect(url_for('personal_account'))
+        flash('Грамота успешно добавлена!', 'success')
+        return redirect(url_for('personal_account'))
 
     except Exception as e:
-        app.logger.error(f"Ошибка при добавлении грамоты: {str(e)}")
-        flash(f'Произошла ошибка при добавлении грамоты: {str(e)}', 'error')
+        flash(f'Ошибка при добавлении грамоты: {str(e)}', 'error')
         return redirect(url_for('personal_account'))
+
+
+@app.route('/edit-certificate', methods=['POST'])
+@login_required
+def edit_certificate():
+    user_id = int(request.cookies.get('user_id'))
+
+    cert_id = request.form.get('certificate_id')
+    title = request.form.get('title')
+    description = request.form.get('description')
+
+    db.update_certificate(cert_id, user_id, title, description)
+    return redirect(url_for('personal_account'))
+
+
+@app.route('/delete-certificate', methods=['POST'])
+@login_required
+def delete_certificate():
+    user_id = int(request.cookies.get('user_id'))
+    cert_id = request.form.get('certificate_id')
+
+    image_url = db.delete_certificate(cert_id, user_id)
+    if image_url:
+        path = os.path.join('static', image_url)
+        if os.path.exists(path):
+            os.remove(path)
+
+    return redirect(url_for('personal_account'))
+
 
 
 def calculate_points(category, subcategory, achievement):

@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/css/personalAccount.css">
-    <link rel="stylesheet" href="static/css/responsive.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
     <title>Личный кабинет</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/static/js/script.js" defer></script>
+    <script src="/static/js/script4.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="apple-touch-icon" sizes="57x57" href="/static/assets/favicons/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/static/assets/favicons/apple-icon-60x60.png">
@@ -26,327 +28,12 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/static/assets/favicons/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
-    <style>
-        /* Стили для модального окна добавления грамоты */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .modal-title {
-            color: #1867AA;
-            font-size: 28px;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        .modal-content label {
-            display: block;
-            color: #1867AA;
-            font-size: 16px;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .modal-content input,
-        .modal-content textarea {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-            font-family: 'Montserrat', sans-serif;
-        }
-
-        .modal-content textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .file-upload-area {
-            border: 2px dashed #1867AA;
-            border-radius: 10px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-            background-color: #f9f9f9;
-        }
-
-        .file-upload-area:hover {
-            background-color: #f0f7ff;
-            border-color: #0d4d8a;
-        }
-
-        .file-upload-area.dragover {
-            background-color: #e6f2ff;
-            border-color: #0d4d8a;
-        }
-
-        .file-upload-icon {
-            font-size: 48px;
-            color: #1867AA;
-            margin-bottom: 10px;
-        }
-
-        .file-upload-text {
-            color: #1867AA;
-            font-size: 16px;
-            margin-bottom: 5px;
-        }
-
-        .file-upload-hint {
-            color: #666;
-            font-size: 12px;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .file-preview-container {
-            margin-top: 20px;
-        }
-
-        .file-preview-title {
-            color: #1867AA;
-            font-size: 16px;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
-        .file-preview-item {
-            background-color: #f0f7ff;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .file-preview-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #1867AA;
-            border-radius: 5px;
-            color: white;
-            font-weight: bold;
-        }
-
-        .file-preview-info {
-            flex: 1;
-        }
-
-        .file-preview-name {
-            font-size: 14px;
-            color: #333;
-            word-break: break-all;
-        }
-
-        .file-preview-size {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .file-preview-remove {
-            background: none;
-            border: none;
-            color: #ff4444;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0 5px;
-        }
-
-        .image-preview {
-            margin-top: 15px;
-            text-align: center;
-        }
-
-        .image-preview img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .pdf-preview {
-            margin-top: 15px;
-            text-align: center;
-            background-color: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-        }
-
-        .pdf-preview iframe {
-            width: 100%;
-            height: 300px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .btn-cancel {
-            padding: 10px 25px;
-            background-color: #f5f5f5;
-            color: #333;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }
-
-        .btn-cancel:hover {
-            background-color: #e0e0e0;
-        }
-
-        .btn-submit {
-            padding: 10px 25px;
-            background-color: #1867AA;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }
-
-        .btn-submit:hover {
-            background-color: #0d4d8a;
-        }
-
-        .btn-submit:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .error-message {
-            color: #ff4444;
-            font-size: 14px;
-            margin-top: 5px;
-            display: none;
-        }
-    </style>
 </head>
 <body>
-    <!-- Модальное окно просмотра грамоты -->
-    <div id="certificateModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
-        <div class="modal-content" style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 70%; max-width: 800px; border-radius: 10px;">
-            <div style="display: flex; gap: 50px;">
-                <div id="certificate-image-container" style="width: 50%; height: auto; display: flex; justify-content: center; align-items: center;">
-                    <!-- Image will be inserted here -->
-                </div>
-                <div style="width: 50%;">
-                    <h2 style="font-size: 30px; font-weight: bold;" id="certificate-title">Название грамоты</h2>
-                    <h4 style="font-style: italic; font-size: 20px; font-weight: 300; margin-top: 26px;">Описание:</h4>
-                    <p style="font-size: 20px;" id="certificate-description">Описание грамоты</p>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: end; margin-top: 20px;">
-                <button class="close-btn" onclick="document.getElementById('certificateModal').style.display='none'" style="padding: 8px 16px; background-color: #1867AA; color: white; border: none; border-radius: 5px; cursor: pointer;">Закрыть</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно добавления грамоты -->
-    <div id="addCertificateModal" class="modal-overlay">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeAddCertificateModal()">&times;</button>
-            <h2 class="modal-title">Добавление грамоты</h2>
-
-            <form id="addCertificateForm" method="POST" action="{{ url_for('add_certificate') }}" enctype="multipart/form-data">
-                <input type="hidden" name="user_id" value="{{ user.user_id }}">
-
-                <label>Название грамоты *</label>
-                <input type="text" name="title" id="certificateTitle" required placeholder="Введите название грамоты">
-
-                <label>Описание</label>
-                <textarea name="description" id="certificateDescription" placeholder="Описание грамоты, конкурса, мероприятия..." rows="4"></textarea>
-
-                <label>Файл грамоты *</label>
-                <div class="file-upload-area" id="dropArea" onclick="document.getElementById('fileInput').click()">
-                    <div class="file-upload-icon">📄</div>
-                    <div class="file-upload-text">Нажмите или перетащите файл сюда</div>
-                    <div class="file-upload-hint">Поддерживаемые форматы: PDF, JPG, PNG</div>
-                    <input type="file" id="fileInput" name="image" accept=".pdf,.jpg,.jpeg,.png,image/*" required>
-                </div>
-
-                <div class="file-preview-container" id="filePreviewContainer" style="display: none;">
-                    <div class="file-preview-title">Выбранный файл:</div>
-                    <div id="filePreviewItem" class="file-preview-item">
-                        <div class="file-preview-icon" id="fileIcon">📄</div>
-                        <div class="file-preview-info">
-                            <div class="file-preview-name" id="fileName"></div>
-                            <div class="file-preview-size" id="fileSize"></div>
-                        </div>
-                        <button type="button" class="file-preview-remove" onclick="removeFile()">&times;</button>
-                    </div>
-
-                    <div id="imagePreview" class="image-preview" style="display: none;">
-                        <img id="previewImage" src="" alt="Предпросмотр изображения">
-                    </div>
-
-                    <div id="pdfPreview" class="pdf-preview" style="display: none;">
-                        <iframe id="previewPDF" src="" title="Предпросмотр PDF"></iframe>
-                    </div>
-                </div>
-
-                <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" onclick="closeAddCertificateModal()">Отмена</button>
-                    <button type="submit" class="btn-submit" id="submitBtn">Добавить грамоту</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <header>
         <nav>
             <a href="{{ url_for('show_main_page') }}" style="display: flex; align-items: center; text-decoration: none;">
-                <img src="static/assets/bgitu-portfel.png" width="71px" height="52px">
+                <img src="/static/assets/bgitu-portfel.png" width="71px" height="52px">
                 <span style="color: #1867AA; font-weight: bold; font-size: 20px; margin-left: 13px;">БГИТУ Портфель</span>
             </a>
             <div class="dropdown">
@@ -363,7 +50,7 @@
                 </button>
                 <div id="dropdown-menu" class="dropdown-content">
                     <a href="{{ url_for('personal_account') }}" style="display: flex; align-items: center;">
-                        <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px">
+                        <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px">
                         <span style="font-size: 20px; font-weight: 400;">Профиль</span>
                     </a>
                     <a href="{{ url_for('edit_account_page') }}" style="display: flex; align-items: center;">
@@ -423,39 +110,49 @@
                 <p>{{ user.email }}</p>
             </div>
             <div>
-                <h4 style="font-style: italic; font-weight: 300;">Дата регистрации:</h4>
-                <p>{{ user.registration_date.strftime('%d.%m.%Y') }}</p>
-            </div>
-            <div>
                 <h4 style="font-style: italic; font-weight: 300;">Институт:</h4>
                 <p>{{ user.institute if user.institute else 'Не указано' }}</p>
             </div>
         </div>
 
-        <!-- Грамоты -->
+        <!-- Раздел грамот -->
         <div style="display: flex; justify-content: space-between; color: #1867AA; margin-top: 30px;">
             <h1 style="font-size: 40px; font-weight: 300; font-style: italic;">Грамоты:</h1>
             <button class="add-button" onclick="openAddCertificateModal()">
-                <img src="/static/assets/add-circle-svgrepo-com.svg" width="27px" height="27px">
+                <img src="/static/assets/add-circle-svgrepo-com.svg" width="27" height="27">
                 <span>Добавить грамоту</span>
             </button>
         </div>
 
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly; margin-top: 30px; gap: 40px;">
+        <!-- Список грамот -->
+        <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 30px;">
             {% for cert in certificates %}
-            <div class="card-diplom" onclick="showCertificateModal('{{ cert.title }}', '{{ cert.description }}', '{{ cert.image_url }}')">
-                {% if cert.image_url %}
-                    <img src="{{ url_for('static', filename=cert.image_url) }}" style="width: 100%; height: 80%; margin-bottom: 8px; border-radius: 26px; object-fit: cover;">
+            <div class="card-diplom" onclick="showCertificateModal('{{ cert.certificate_id }}', '{{ cert.title }}', '{{ cert.description }}', '{{ url_for('static', filename=cert.image_url) }}')">
+                {% if cert.image_url.endswith('.pdf') %}
+                    <div class="card-diplom-pdf-placeholder">
+                        <div class="card-diplom-pdf-icon">📕</div>
+                        <span class="card-diplom-pdf-text">PDF документ</span>
+                    </div>
                 {% else %}
-                    <div style="background-color: black; width: 100%; height: 80%; margin-bottom: 8px; border-radius: 26px;"></div>
+                    <div class="card-diplom-image-container">
+                        <img src="{{ url_for('static', filename=cert.image_url) }}" alt="{{ cert.title }}">
+                    </div>
                 {% endif %}
-                <p style="text-align: center; font-size: 19px;">{{ cert.title }}</p>
+                <p>{{ cert.title }}</p>
+                <div class="card-diplom-buttons">
+                    <button onclick="event.stopPropagation(); openEditCertificateModal({{ cert.certificate_id }}, '{{ cert.title }}', '{{ cert.description }}')">✏️</button>
+                    <form method="POST" action="{{ url_for('delete_certificate') }}" onsubmit="return confirm('Вы уверены, что хотите удалить эту грамоту?');">
+                        <input type="hidden" name="certificate_id" value="{{ cert.certificate_id }}">
+                        <button type="submit" onclick="event.stopPropagation()">🗑️</button>
+                    </form>
+                </div>
             </div>
             {% endfor %}
         </div>
-        <!-- Заявки -->
-        <!-- {% if applications %} -->
-        <h1 style="font-size: 40px; font-weight: 300; font-style: italic; color: #1867AA; margin-top: 26px;">Заявки:</h1>
+
+        <!-- Раздел заявок (только для организаторов) -->
+        {% if user.role_id == 3 and applications %}
+        <h1 style="font-size: 40px; font-weight: 300; font-style: italic; color: #1867AA; margin-top: 50px;">Заявки на мероприятия:</h1>
 
         <div style="margin-top: 20px;">
             {% for app in applications %}
@@ -464,11 +161,9 @@
                     <!-- Аватарка пользователя -->
                     <div style="flex-shrink: 0;">
                         {% if app.avatar_url %}
-                            <img src="{{ url_for('static', filename=app.avatar_url) }}"
-                                 style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                            <img src="{{ url_for('static', filename=app.avatar_url) }}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
                         {% else %}
-                            <div style="width: 80px; height: 80px; border-radius: 50%; background-color: #1867AA;
-                                       display: flex; align-items: center; justify-content: center; color: white;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background-color: #1867AA; display: flex; align-items: center; justify-content: center; color: white;">
                                 {{ app.first_name|first }}{{ app.last_name|first }}
                             </div>
                         {% endif %}
@@ -478,8 +173,7 @@
                     <div style="flex-grow: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                             <div>
-                                <a href="{{ url_for('view_user_profile', user_id=app.user_id) }}"
-                                   style="text-decoration: none; color: #1867AA;">
+                                <a href="{{ url_for('view_user_profile', user_id=app.user_id) }}" style="text-decoration: none; color: #1867AA;">
                                     <h3 style="font-size: 22px; margin-bottom: 5px;">
                                         {{ app.last_name }} {{ app.first_name }} {{ app.patronymic }}
                                     </h3>
@@ -500,8 +194,7 @@
                                 <div style="margin-bottom: 10px;">
                                     <p style="color: #1867AA; font-weight: bold; margin-bottom: 5px;">
                                         Объявление:
-                                        <a href="{{ url_for('show_advertisement', ad_id=app.ad_id) }}"
-                                           style="color: #1867AA; text-decoration: underline;">
+                                        <a href="{{ url_for('show_advertisement', ad_id=app.ad_id) }}" style="color: #1867AA; text-decoration: underline;">
                                             {{ app.ad_title }} ({{ app.category }})
                                         </a>
                                     </p>
@@ -520,10 +213,7 @@
                             <div style="text-align: right; min-width: 200px;">
                                 <p style="color: #1867AA; margin-bottom: 10px;">
                                     <strong>Статус:</strong>
-                                    <span style="font-weight: bold;
-                                        {% if app.status == 'approved' %}color: #28a745;
-                                        {% elif app.status == 'rejected' %}color: #dc3545;
-                                        {% else %}color: #ffc107;{% endif %}">
+                                    <span class="{% if app.status == 'approved' %}status-approved{% elif app.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
                                         {% if app.status == 'approved' %}Подтверждена
                                         {% elif app.status == 'rejected' %}Отклонена
                                         {% else %}На рассмотрении{% endif %}
@@ -536,12 +226,10 @@
 
                                 {% if app.status == 'pending' %}
                                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                                    <button class="btn btn-approve"
-                                            onclick="updateApplicationStatus({{ app.application_id }}, 'approved')">
+                                    <button class="btn btn-approve" onclick="updateApplicationStatus({{ app.application_id }}, 'approved')">
                                         <img src="/static/assets/unread-svgrepo-com.svg" alt="Подтвердить">
                                     </button>
-                                    <button class="btn btn-reject"
-                                            onclick="updateApplicationStatus({{ app.application_id }}, 'rejected')">
+                                    <button class="btn btn-reject" onclick="updateApplicationStatus({{ app.application_id }}, 'rejected')">
                                         <img src="/static/assets/close-circle-svgrepo-com.svg" alt="Отклонить">
                                     </button>
                                 </div>
@@ -553,429 +241,129 @@
             </div>
             {% endfor %}
         </div>
-        <!--{% endif %}-->
-        {% if user.role_id == 2 %}
-        <a href="{{ url_for('show_create_ad_page') }}" style="text-decoration: none;">
-            <button class="create-news">Подать заявку</button>
-        </a>
-        {%endif%}
-        {% if user.role_id == 1 %}
-        <a href="{{ url_for('admin_panel') }}" style="text-decoration: none;">
-            <button class="create-news">Перейти в админ-панель</button>
-        </a>
-        {%endif%}
+        {% endif %}
+
+        <!-- Кнопки действий -->
+        <div style="margin-top: 50px;">
+            {% if user.role_id == 2 %}
+            <a href="{{ url_for('show_create_ad_page') }}" style="text-decoration: none;">
+                <button class="create-news">Подать заявку на ПГАС</button>
+            </a>
+            {% endif %}
+
+            {% if user.role_id == 3 %}
+            <a href="{{ url_for('show_create_ad_page') }}" style="text-decoration: none;">
+                <button class="create-news" style="margin-right: 20px;">Создать мероприятие</button>
+            </a>
+            {% endif %}
+
+            {% if user.role_id == 1 %}
+            <a href="{{ url_for('admin_panel') }}" style="text-decoration: none;">
+                <button class="create-news">Перейти в админ-панель</button>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ================= МОДАЛЬНЫЕ ОКНА ================= -->
+
+    <!-- Модальное окно просмотра грамоты -->
+    <div id="viewCertificateModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <h2 id="viewCertificateTitle" style="color: #1867AA; margin-bottom: 15px;"></h2>
+            <p id="viewCertificateDescription" style="margin-bottom: 20px; color: #666;"></p>
+
+            <!-- Контейнер для изображения -->
+            <div id="viewCertificateImageContainer" style="text-align: center; margin-bottom: 20px;"></div>
+
+            <!-- Контейнер для PDF -->
+            <div id="viewCertificatePdfContainer" class="pdf-preview" style="display: none;">
+                <iframe id="pdfViewer" class="pdf-viewer" src=""></iframe>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button onclick="closeModal('viewCertificateModal')" style="padding: 10px 30px; background-color: #1867AA; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования грамоты -->
+    <div id="editCertificateModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: #1867AA; margin-bottom: 20px;">Редактировать грамоту</h2>
+            <form method="POST" action="{{ url_for('edit_certificate') }}">
+                <input type="hidden" name="certificate_id" id="editCertificateId">
+                <input type="text" name="title" id="editCertificateTitle" placeholder="Название" required style="margin-bottom: 15px;">
+                <textarea name="description" id="editCertificateDescription" placeholder="Описание" style="margin-bottom: 20px;"></textarea>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" style="flex: 1; padding: 12px; background-color: #1867AA; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Сохранить</button>
+                    <button type="button" onclick="closeModal('editCertificateModal')" style="flex: 1; padding: 12px; background-color: #f5f5f5; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления грамоты -->
+    <div id="addCertificateModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAddCertificateModal()">&times;</button>
+            <h2 class="modal-title">Добавить грамоту</h2>
+
+            <form id="addCertificateForm" method="POST" action="{{ url_for('add_certificate') }}" enctype="multipart/form-data">
+                <div class="form-columns">
+                    <div class="left-column">
+                        <label for="certificateTitle">Название грамоты *</label>
+                        <input type="text" id="certificateTitle" name="title" required placeholder="Введите название">
+
+                        <label for="certificateDescription">Описание</label>
+                        <textarea id="certificateDescription" name="description" placeholder="Введите описание"></textarea>
+                    </div>
+
+                    <div class="right-column">
+                        <label>Изображение грамоты *</label>
+
+                        <!-- Область для загрузки файлов -->
+                        <div id="dropArea" class="file-upload-area">
+                            <div class="file-upload-icon">📄</div>
+                            <div class="file-upload-text">Нажмите или перетащите файлы сюда</div>
+                            <div class="file-upload-hint">Поддерживаемые форматы: JPG, PNG, GIF, PDF, DOC, DOCX</div>
+                            <input type="file" id="fileInput" name="image" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx" required>
+                        </div>
+
+                        <!-- Предпросмотр выбранных файлов -->
+                        <div id="filePreviewContainer" class="file-preview-container">
+                            <div class="file-preview-title">Выбранные файлы:</div>
+                            <div id="filePreviewList" class="file-preview-list"></div>
+
+                            <!-- Предпросмотр изображения -->
+                            <div id="imagePreview" class="image-preview">
+                                <img id="previewImage" src="" alt="Предпросмотр">
+                            </div>
+
+                            <!-- Предпросмотр PDF -->
+                            <div id="pdfPreview" class="pdf-preview">
+                                <iframe id="pdfPreviewFrame" class="pdf-viewer" src=""></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeAddCertificateModal()">Отмена</button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Добавить грамоту</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <footer>
         <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
-            <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+            <img src="/static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
         </a>
         <span style="color: white; font-size: 20px; font-weight: bold;">© 2025-2026 БГИТУ Портфель. Все права защищены.</span>
         <a href="https://it.bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
-            <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+            <img src="/static/assets/logo_IT_bely.png" width="55px" height="59px">
         </a>
     </footer>
-
-    <script>
-        // Подкатегории для каждой категории
-        const subcategories = {
-            'study': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'performance_excellent', text: 'Успеваемость "отлично"'},
-                {value: 'performance_good', text: 'Успеваемость "хорошо" и "отлично"'},
-                {value: 'olympiads_international', text: 'Олимпиады международные'},
-                {value: 'olympiads_russian', text: 'Олимпиады российские/областные'},
-                {value: 'olympiads_university', text: 'Олимпиады вузовские'},
-                {value: 'additional_programs', text: 'Дополнительные образовательные программы'}
-            ],
-            'research': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'science_competitions_international', text: 'Научные конкурсы международные'},
-                {value: 'science_competitions_russian', text: 'Научные конкурсы российские/областные'},
-                {value: 'science_competitions_university', text: 'Научные конкурсы вузовские'},
-                {value: 'publications_vak', text: 'Публикации ВАК/РИНЦ'},
-                {value: 'publications_other', text: 'Публикации прочие'},
-                {value: 'conferences', text: 'Участие в научных конференциях'}
-            ],
-            'creative': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'competitions_international', text: 'Конкурсы международные'},
-                {value: 'competitions_russian', text: 'Конкурсы российские/областные'},
-                {value: 'competitions_university', text: 'Конкурсы вузовские'}
-            ],
-            'sport': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'msmk', text: 'Мастер спорта международного класса'},
-                {value: 'team_russia', text: 'Член Сборной России'},
-                {value: 'competitions_world', text: 'Чемпионат мира'},
-                {value: 'competitions_russia', text: 'Чемпионат России'},
-                {value: 'competitions_cfo', text: 'Чемпионат ЦФО'},
-                {value: 'competitions_region', text: 'Чемпионат области'},
-                {value: 'sport_promo', text: 'Популяризация спорта'}
-            ],
-            'social': [
-                {value: '', text: 'Выберите подкатегорию'},
-                {value: 'starosta', text: 'Староста'},
-                {value: 'profsoyuz', text: 'Профсоюзная работа/студсовет'},
-                {value: 'volunteer', text: 'Волонтерская деятельность'},
-                {value: 'proforientation', text: 'Профориентационная работа/летние лагеря'}
-            ]
-        };
-
-        // Массив выбранных файлов
-        let selectedFiles = [];
-
-        // Функции для работы с модальными окнами
-        function toggleDropdown() {
-            document.getElementById("dropdown-menu").classList.toggle("show");
-        }
-
-        function showCertificateModal(title, description, imageUrl) {
-            document.getElementById('certificate-title').textContent = title;
-            document.getElementById('certificate-description').textContent = description;
-
-            const imageContainer = document.getElementById('certificate-image-container');
-            imageContainer.innerHTML = '';
-            if (imageUrl) {
-                const img = document.createElement('img');
-                img.src = '/' + imageUrl;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '400px';
-                img.style.borderRadius = '10px';
-                img.style.objectFit = 'contain';
-                imageContainer.appendChild(img);
-            }
-
-            document.getElementById('certificateModal').style.display = 'block';
-        }
-
-        function openAddCertificateModal() {
-            document.getElementById('addCertificateModal').style.display = 'flex';
-            resetForm();
-        }
-
-        function closeAddCertificateModal() {
-            document.getElementById('addCertificateModal').style.display = 'none';
-            resetForm();
-        }
-
-        function resetForm() {
-            document.getElementById('addCertificateForm').reset();
-            selectedFiles = [];
-            updateFilePreview();
-            updateSubmitButton();
-            updateSubcategories();
-        }
-
-        // Обновление подкатегорий при изменении категории
-        document.getElementById('certificateCategory').addEventListener('change', function() {
-            updateSubcategories();
-        });
-
-        function updateSubcategories() {
-            const category = document.getElementById('certificateCategory').value;
-            const subcategorySelect = document.getElementById('certificateSubcategory');
-
-            subcategorySelect.innerHTML = '';
-
-            if (category && subcategories[category]) {
-                subcategories[category].forEach(option => {
-                    const opt = document.createElement('option');
-                    opt.value = option.value;
-                    opt.textContent = option.text;
-                    subcategorySelect.appendChild(opt);
-                });
-            } else {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'Выберите подкатегорию';
-                subcategorySelect.appendChild(opt);
-            }
-        }
-
-        // Работа с файлами
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('fileInput');
-
-        dropArea.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', function(e) {
-            handleFiles(e.target.files);
-        });
-
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.classList.add('dragover');
-        });
-
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('dragover');
-        });
-
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('dragover');
-
-            if (e.dataTransfer.files.length) {
-                handleFiles(e.dataTransfer.files);
-            }
-        });
-
-        function handleFiles(files) {
-            const newFiles = Array.from(files).filter(file => {
-                // Проверка формата файла
-                const validTypes = [
-                    'application/pdf',
-                    'image/jpeg',
-                    'image/jpg',
-                    'image/png',
-                    'image/gif',
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-                ];
-                return validTypes.includes(file.type) ||
-                       file.name.toLowerCase().endsWith('.pdf') ||
-                       file.name.toLowerCase().endsWith('.jpg') ||
-                       file.name.toLowerCase().endsWith('.jpeg') ||
-                       file.name.toLowerCase().endsWith('.png') ||
-                       file.name.toLowerCase().endsWith('.doc') ||
-                       file.name.toLowerCase().endsWith('.docx');
-            });
-
-            // Добавляем только новые файлы
-            newFiles.forEach(newFile => {
-                const existingFile = selectedFiles.find(f =>
-                    f.name === newFile.name && f.size === newFile.size
-                );
-                if (!existingFile) {
-                    selectedFiles.push(newFile);
-                }
-            });
-
-            updateFilePreview();
-            updateSubmitButton();
-        }
-
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            updateFilePreview();
-            updateSubmitButton();
-        }
-
-        function updateFilePreview() {
-            const previewList = document.getElementById('filePreviewList');
-            const previewContainer = document.getElementById('filePreviewContainer');
-            const imagePreview = document.getElementById('imagePreview');
-            const documentPreview = document.getElementById('documentPreview');
-
-            previewList.innerHTML = '';
-
-            if (selectedFiles.length === 0) {
-                previewContainer.style.display = 'none';
-                imagePreview.style.display = 'none';
-                documentPreview.style.display = 'none';
-                return;
-            }
-
-            previewContainer.style.display = 'block';
-
-            selectedFiles.forEach((file, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-preview-item';
-
-                const fileExt = file.name.split('.').pop().toLowerCase();
-                const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExt);
-                const isPDF = fileExt === 'pdf';
-                const isWord = ['doc', 'docx'].includes(fileExt);
-
-                let iconText = '📄';
-                if (isImage) iconText = '🖼️';
-                if (isPDF) iconText = '📕';
-                if (isWord) iconText = '📝';
-
-                fileItem.innerHTML = `
-                    <div class="file-preview-icon">${iconText}</div>
-                    <div class="file-preview-info">
-                        <div class="file-preview-name">${file.name}</div>
-                        <div class="file-preview-size">${formatFileSize(file.size)}</div>
-                    </div>
-                    <button class="file-preview-remove" onclick="removeFile(${index})">&times;</button>
-                `;
-
-                // Добавляем обработчик для предпросмотра
-                if (isImage) {
-                    fileItem.style.cursor = 'pointer';
-                    fileItem.addEventListener('click', () => previewImage(file));
-                } else if (isPDF || isWord) {
-                    fileItem.style.cursor = 'pointer';
-                    fileItem.addEventListener('click', () => previewDocument(file));
-                }
-
-                previewList.appendChild(fileItem);
-            });
-        }
-
-        function previewImage(file) {
-            const imagePreview = document.getElementById('imagePreview');
-            const previewImage = document.getElementById('previewImage');
-            const documentPreview = document.getElementById('documentPreview');
-
-            documentPreview.style.display = 'none';
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImage.src = e.target.result;
-                imagePreview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function previewDocument(file) {
-            const imagePreview = document.getElementById('imagePreview');
-            const documentPreview = document.getElementById('documentPreview');
-            const previewDocument = document.getElementById('previewDocument');
-
-            imagePreview.style.display = 'none';
-
-            // Для PDF файлов
-            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Создаем объект URL для PDF
-                    const pdfUrl = e.target.result;
-                    previewDocument.src = pdfUrl;
-                    documentPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-            // Для Word документов - показываем сообщение
-            else if (file.type.includes('word') || file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.docx')) {
-                documentPreview.innerHTML = `
-                    <div style="text-align: center; padding: 40px;">
-                        <div style="font-size: 48px; margin-bottom: 20px;">📝</div>
-                        <h3 style="color: #1867AA;">Документ Word</h3>
-                        <p>${file.name}</p>
-                        <p style="color: #666; margin-top: 20px;">Для просмотра содержимого необходимо скачать файл</p>
-                    </div>
-                `;
-                documentPreview.style.display = 'block';
-            }
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        function updateSubmitButton() {
-            const title = document.getElementById('certificateTitle').value.trim();
-            const category = document.getElementById('certificateCategory').value;
-            const hasFiles = selectedFiles.length > 0;
-
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = !(title && category && hasFiles);
-        }
-
-        // Обновление состояния кнопки при вводе
-        document.getElementById('certificateTitle').addEventListener('input', updateSubmitButton);
-        document.getElementById('certificateCategory').addEventListener('change', updateSubmitButton);
-
-        // Обработка формы
-        document.getElementById('addCertificateForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Проверка обязательных полей
-            const title = document.getElementById('certificateTitle').value.trim();
-            const category = document.getElementById('certificateCategory').value;
-
-            if (!title) {
-                alert('Пожалуйста, введите название грамоты');
-                return;
-            }
-
-            if (!category) {
-                alert('Пожалуйста, выберите категорию');
-                return;
-            }
-
-            if (selectedFiles.length === 0) {
-                alert('Пожалуйста, выберите файл грамоты');
-                return;
-            }
-
-            // Создаем FormData для отправки
-            const formData = new FormData(this);
-
-            // Добавляем все файлы
-            selectedFiles.forEach(file => {
-                formData.append('files[]', file);
-            });
-
-            // Отправляем форму
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    return response.json();
-                }
-            })
-            .then(data => {
-                if (data && data.success) {
-                    closeAddCertificateModal();
-                    location.reload();
-                } else if (data && data.error) {
-                    alert('Ошибка: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Произошла ошибка при отправке формы');
-            });
-        });
-
-        // Закрытие модальных окон
-        window.addEventListener('click', function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-            if (event.target.id === 'addCertificateModal') {
-                closeAddCertificateModal();
-            }
-        });
-
-        // Обновление статуса заявки
-        function updateApplicationStatus(applicationId, status) {
-            fetch("{{ url_for('update_application_status') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `application_id=${applicationId}&status=${status}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert('Ошибка: ' + data.error);
-                }
-            });
-        }
-
-        // Инициализация при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            updateSubcategories();
-        });
-    </script>
 </body>
 </html>
