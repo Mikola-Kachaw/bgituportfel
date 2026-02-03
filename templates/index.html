@@ -200,5 +200,71 @@
             <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
         </a>
     </footer>
+
+<script>
+// Простая функция загрузки данных
+async function loadStudents() {
+    try {
+        const response = await fetch('/api/students?page=1');
+        const data = await response.json();
+
+        console.log('Получены данные:', data);
+
+        if (data.students && data.students.length > 0) {
+            renderTable(data.students);
+        } else {
+            document.getElementById('tableBody').innerHTML = `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 20px;">
+                        Нет данных о студентах
+                    </td>
+                </tr>
+            `;
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        document.getElementById('tableBody').innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 20px; color: red;">
+                    Ошибка загрузки данных
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function renderTable(students) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    students.forEach(student => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="fio-column">${student.fio || student.user_id}</td>
+            <td class="group-column">${student.group_name || '-'}</td>
+            <td class="number-column">${student.study || 0}</td>
+            <td class="number-column">${student.research || 0}</td>
+            <td class="number-column">${student.creative || 0}</td>
+            <td class="number-column">${student.sport || 0}</td>
+            <td class="number-column">${student.social || 0}</td>
+            <td class="number-column">${student.total || 0}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Загружаем данные при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Загружаем данные...');
+    loadStudents();
+
+    // Поиск
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function(e) {
+        console.log('Поиск:', e.target.value);
+        // Здесь будет поиск
+    });
+});
+</script>
 </body>
 </html>

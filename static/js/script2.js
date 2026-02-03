@@ -214,6 +214,13 @@
             // Общий итог
             userPoints.total = userPoints.study + userPoints.research + userPoints.creative + userPoints.sport + userPoints.social;
 
+
+    document.getElementById('studyPointsInput').value = userPoints.study;
+    document.getElementById('researchPointsInput').value = userPoints.research;
+    document.getElementById('creativePointsInput').value = userPoints.creative;
+    document.getElementById('sportPointsInput').value = userPoints.sport;
+    document.getElementById('socialPointsInput').value = userPoints.social;
+    document.getElementById('totalPointsInput').value = userPoints.total;
             // Обновление интерфейса
             updateUI();
         }

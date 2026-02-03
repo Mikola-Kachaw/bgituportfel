@@ -357,7 +357,8 @@ class Database:
     def register_user(self, login: str, password: str, email: str, last_name: str,
                       first_name: str, patronymic: str, gender: str,
                       education_level: str, avatar_url: str = None,
-                      role_id: int = 2):
+                      role_id: int = 2, course_number: int = None,
+                      group_name: str = None, institute: str = None):
         """Регистрация нового пользователя с хэшированием пароля"""
         try:
             with self.conn.cursor() as cursor:
@@ -370,11 +371,12 @@ class Database:
                 cursor.execute(
                     """INSERT INTO users 
                     (login, password, email, role_id, last_name, first_name, patronymic,
-                     gender, education_level, avatar_url)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                     gender, education_level, avatar_url, course_number, group_name, institute)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING user_id""",
                     (login, hashed_password, email, role_id, last_name, first_name,
-                     patronymic, gender, education_level, avatar_url)
+                     patronymic, gender, education_level, avatar_url,
+                     course_number, group_name, institute)
                 )
                 user_id = cursor.fetchone()[0]
                 self.conn.commit()
@@ -755,6 +757,46 @@ class Database:
                 return students
         except psycopg2.Error as e:
             print(f"Ошибка при получении студентов: {e}")
+            return []
+
+    def get_user_scholarship_applications(self, user_id):
+        """Получение заявок на стипендию пользователя"""
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT 
+                        application_id,
+                        total_points,
+                        study_points,
+                        research_points,
+                        creative_points,
+                        sport_points,
+                        social_points,
+                        status,
+                        application_date
+                    FROM scholarship_applications 
+                    WHERE user_id = %s
+                    ORDER BY application_date DESC
+                """, (user_id,))
+
+                applications = []
+                for row in cursor.fetchall():
+                    app_dict = {
+                        'application_id': row[0],
+                        'total_points': row[1],
+                        'study_points': row[2],
+                        'research_points': row[3],
+                        'creative_points': row[4],
+                        'sport_points': row[5],
+                        'social_points': row[6],
+                        'status': row[7],
+                        'application_date': row[8]
+                    }
+                    applications.append(app_dict)
+
+                return applications
+        except psycopg2.Error as e:
+            print(f"Ошибка при получении заявок на стипендию: {e}")
             return []
 
     def get_student_detailed_points(self, user_id):

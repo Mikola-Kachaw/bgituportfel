@@ -33,7 +33,7 @@
     <header>
         <nav>
             <a href="{{ url_for('show_main_page') }}" style="display: flex; align-items: center; text-decoration: none;">
-                <img src="/static/assets/bgitu-portfel.png" width="71px" height="52px">
+                <img src="static/assets/bgitu-portfel.png" width="71px" height="52px">
                 <span style="color: #1867AA; font-weight: bold; font-size: 20px; margin-left: 13px;">БГИТУ Портфель</span>
             </a>
             <div class="dropdown">
@@ -42,23 +42,23 @@
                         <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
                     {% else %}
                         <div style="background-color: white; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #bdbdbd;">
-                            <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
+                            <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
                         </div>
                     {% endif %}
                     <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">{{ user.last_name }} {{ user.first_name|first }}.{{ user.patronymic|first }}.</span>
-                    <img src="/static/assets/alt-arrow-down-svgrepo-com.svg" width="52px" height="28px">
+                    <img src="static/assets/alt-arrow-down-svgrepo-com.svg" width="52px" height="28px">
                 </button>
                 <div id="dropdown-menu" class="dropdown-content">
                     <a href="{{ url_for('personal_account') }}" style="display: flex; align-items: center;">
-                        <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px">
+                        <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px">
                         <span style="font-size: 20px; font-weight: 400;">Профиль</span>
                     </a>
                     <a href="{{ url_for('edit_account_page') }}" style="display: flex; align-items: center;">
-                        <img src="/static/assets/settings-svgrepo-com.svg" width="46px" height="29px">
+                        <img src="static/assets/settings-svgrepo-com.svg" width="46px" height="29px">
                         <span style="font-size: 20px; font-weight: 400;">Настройки</span>
                     </a>
                     <a href="{{ url_for('logout') }}" style="display: flex; align-items: center;">
-                        <img src="/static/assets/logout-2-svgrepo-com.svg" width="46px" height="29px">
+                        <img src="static/assets/logout-2-svgrepo-com.svg" width="46px" height="29px">
                         <span style="font-size: 20px; font-weight: 400; color: #AA1818;">Выйти</span>
                     </a>
                 </div>
