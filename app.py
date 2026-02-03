@@ -901,8 +901,9 @@ def main():
         os.makedirs(UPLOAD_FOLDER)
 
     db.create_tables()
-    app.run(debug=True)
+    app.run(host='185.221.215.193', port=8000)
 
 
 if __name__ == "__main__":
+
     main()
