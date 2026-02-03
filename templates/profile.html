@@ -57,7 +57,7 @@
                         <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
                     {% else %}
                         <div style="background-color: white; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #bdbdbd;">
-                            <img src="static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
+                            <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
                         </div>
                     {% endif %}
                     <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">{{ user.last_name }} {{ user.first_name|first }}.{{ user.patronymic|first }}.</span>
@@ -154,11 +154,11 @@
 
     <footer>
         <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
-            <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
+            <img src="/static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
         </a>
         <span style="color: white; font-size: 20px; font-weight: bold;">© 2025-2026 БГИТУ Портфель. Все права защищены.</span>
         <a href="https://it.bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
-            <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
+            <img src="/static/assets/logo_IT_bely.png" width="55px" height="59px">
         </a>
     </footer>
 

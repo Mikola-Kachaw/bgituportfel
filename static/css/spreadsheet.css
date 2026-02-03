@@ -6,6 +6,13 @@
     font-family: "Montserrat", sans-serif;
 }
 
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
 /* ===== HEADER & NAVIGATION ===== */
 header {
     background-color: #1867AA;
@@ -535,6 +542,7 @@ th.sorted-desc .sort-arrow.down {
 
 /* ===== FOOTER ===== */
 footer {
+    margin-top: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;

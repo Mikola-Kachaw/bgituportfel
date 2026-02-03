@@ -232,6 +232,86 @@ class Database:
                     )
                 """)
 
+                cursor.execute("""
+                               CREATE TABLE IF NOT EXISTS student_points (
+                                   point_id SERIAL PRIMARY KEY,
+                                   user_id INT NOT NULL,
+                                   category_type VARCHAR(50) NOT NULL,
+                                   subcategory VARCHAR(100),
+                                   points INT NOT NULL,
+                                   description TEXT,
+                                   date_awarded TIMESTAMP DEFAULT NOW(),
+                                   verified BOOLEAN DEFAULT TRUE,
+                                   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                               )
+                           """)
+
+                # Таблица для категорий баллов
+                cursor.execute("""
+                               CREATE TABLE IF NOT EXISTS point_categories (
+                                   category_id SERIAL PRIMARY KEY,
+                                   name VARCHAR(100) NOT NULL UNIQUE,
+                                   description TEXT,
+                                   max_points INT
+                               )
+                           """)
+
+                # Добавляем стандартные категории баллов
+                cursor.execute("""
+                               INSERT INTO point_categories (name, description, max_points)
+                               VALUES 
+                                   ('study', 'Учебная деятельность', NULL),
+                                   ('research', 'Научно-исследовательская деятельность', NULL),
+                                   ('creative', 'Творческие конкурсы', NULL),
+                                   ('sport', 'Спорт', NULL),
+                                   ('social', 'Общественная работа', NULL)
+                               ON CONFLICT (name) DO NOTHING
+                           """)
+                # Таблица для хранения заявок на стипендию
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS scholarship_applications (
+                        application_id SERIAL PRIMARY KEY,
+                        user_id INT NOT NULL,
+                        application_date TIMESTAMP DEFAULT NOW(),
+                        status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'under_review')),
+                        total_points INT DEFAULT 0,
+                        study_points INT DEFAULT 0,
+                        research_points INT DEFAULT 0,
+                        creative_points INT DEFAULT 0,
+                        sport_points INT DEFAULT 0,
+                        social_points INT DEFAULT 0,
+                        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                    )
+                """)
+
+                # Таблица для подкатегорий заявки
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS application_subcategories (
+                        subcategory_id SERIAL PRIMARY KEY,
+                        application_id INT NOT NULL,
+                        category_type VARCHAR(50) NOT NULL,
+                        subcategory_name VARCHAR(100) NOT NULL,
+                        place INT,
+                        description TEXT,
+                        points INT DEFAULT 0,
+                        FOREIGN KEY (application_id) REFERENCES scholarship_applications(application_id) ON DELETE CASCADE
+                    )
+                """)
+
+                # Таблица для файлов грамот
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS application_certificates (
+                        certificate_id SERIAL PRIMARY KEY,
+                        application_id INT NOT NULL,
+                        subcategory_id INT,
+                        file_path VARCHAR(255) NOT NULL,
+                        original_filename VARCHAR(255) NOT NULL,
+                        upload_date TIMESTAMP DEFAULT NOW(),
+                        FOREIGN KEY (application_id) REFERENCES scholarship_applications(application_id) ON DELETE CASCADE,
+                        FOREIGN KEY (subcategory_id) REFERENCES application_subcategories(subcategory_id) ON DELETE CASCADE
+                    )
+                """)
+
                 self.conn.commit()
                 print("Таблицы успешно созданы")
         except psycopg2.Error as e:
@@ -398,6 +478,36 @@ class Database:
                     return dict(zip(columns, result))
         return None
 
+    def create_scholarship_application(self, user_id, data):
+        """Создание новой заявки на стипендию"""
+        try:
+            with self.conn.cursor() as cursor:
+                # Вставляем основную заявку
+                cursor.execute("""
+                    INSERT INTO scholarship_applications 
+                    (user_id, total_points, study_points, research_points, 
+                     creative_points, sport_points, social_points)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    RETURNING application_id
+                """, (
+                    user_id,
+                    data.get('total_points', 0),
+                    data.get('study_points', 0),
+                    data.get('research_points', 0),
+                    data.get('creative_points', 0),
+                    data.get('sport_points', 0),
+                    data.get('social_points', 0)
+                ))
+
+                application_id = cursor.fetchone()[0]
+
+                self.conn.commit()
+                return application_id
+
+        except Exception as e:
+            self.conn.rollback()
+            raise ValueError(f"Ошибка при создании заявки: {e}")
+
     def add_application(self, user_id: int, ad_id: int, message: str = None):
         """Добавление заявки на участие в мероприятии"""
         try:
@@ -470,14 +580,18 @@ class Database:
             return []
 
     def add_certificate(self, user_id: int, title: str, description: str, image_url: str):
-        """Добавление грамоты пользователя"""
+        """Добавление грамоты пользователя с поддержкой нескольких файлов"""
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO user_certificates 
                     (user_id, title, description, image_url)
                     VALUES (%s, %s, %s, %s)
+                    RETURNING certificate_id
                 """, (user_id, title, description, image_url))
+
+                certificate_id = cursor.fetchone()[0]
+
                 self.conn.commit()
                 return True
         except psycopg2.Error as e:
@@ -573,3 +687,186 @@ class Database:
         except psycopg2.Error as e:
             self.conn.rollback()
             raise ValueError(f"Ошибка при отмене роли организатора: {e}")
+
+    def get_all_students_with_points(self):
+        """Получение всех студентов с их баллами"""
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT 
+                        u.user_id,
+                        u.last_name || ' ' || u.first_name || ' ' || u.patronymic as fio,
+                        u.group_name,
+                        u.institute,
+                        u.course_number,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'study' THEN sp.points ELSE 0 END), 0) as study_points,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'research' THEN sp.points ELSE 0 END), 0) as research_points,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'creative' THEN sp.points ELSE 0 END), 0) as creative_points,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'sport' THEN sp.points ELSE 0 END), 0) as sport_points,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'social' THEN sp.points ELSE 0 END), 0) as social_points,
+                        COALESCE(SUM(sp.points), 0) as total_points
+                    FROM users u
+                    LEFT JOIN student_points sp ON u.user_id = sp.user_id
+                    WHERE u.role_id = 2  -- обычные пользователи (студенты)
+                    GROUP BY u.user_id, u.last_name, u.first_name, u.patronymic, 
+                             u.group_name, u.institute, u.course_number
+                    ORDER BY total_points DESC
+                """)
+
+                columns = [desc[0] for desc in cursor.description]
+                students = []
+
+                for row in cursor.fetchall():
+                    student_dict = dict(zip(columns, row))
+                    # Преобразуем типы данных
+                    student_dict['study'] = int(student_dict['study_points'])
+                    student_dict['research'] = int(student_dict['research_points'])
+                    student_dict['creative'] = int(student_dict['creative_points'])
+                    student_dict['sport'] = int(student_dict['sport_points'])
+                    student_dict['social'] = int(student_dict['social_points'])
+                    student_dict['total'] = int(student_dict['total_points'])
+                    students.append(student_dict)
+
+                return students
+        except psycopg2.Error as e:
+            print(f"Ошибка при получении студентов: {e}")
+            return []
+
+    def get_student_detailed_points(self, user_id):
+        """Получение детальной информации о баллах студента"""
+        try:
+            with self.conn.cursor() as cursor:
+                # Основная информация о студенте
+                cursor.execute("""
+                    SELECT 
+                        u.user_id,
+                        u.last_name || ' ' || u.first_name || ' ' || u.patronymic as fio,
+                        u.group_name,
+                        u.institute,
+                        u.course_number
+                    FROM users u
+                    WHERE u.user_id = %s
+                """, (user_id,))
+
+                student_info = cursor.fetchone()
+                if not student_info:
+                    return None
+
+                columns = [desc[0] for desc in cursor.description]
+                student = dict(zip(columns, student_info))
+
+                # Детальные баллы
+                cursor.execute("""
+                    SELECT 
+                        category_type,
+                        subcategory,
+                        points,
+                        description,
+                        date_awarded
+                    FROM student_points
+                    WHERE user_id = %s
+                    ORDER BY category_type, date_awarded DESC
+                """, (user_id,))
+
+                detailed_points = cursor.fetchall()
+                point_columns = [desc[0] for desc in cursor.description]
+
+                # Группируем баллы по категориям
+                student['studyDetails'] = {
+                    'performance': [],
+                    'olympiads': [],
+                    'additionalPrograms': []
+                }
+                student['researchDetails'] = {
+                    'scienceCompetitions': [],
+                    'publications': [],
+                    'conferences': []
+                }
+                student['creativeDetails'] = {
+                    'competitions': []
+                }
+                student['sportDetails'] = {
+                    'membership': '',
+                    'achievements': []
+                }
+                student['socialDetails'] = {
+                    'roles': []
+                }
+
+                for point in detailed_points:
+                    point_dict = dict(zip(point_columns, point))
+                    category = point_dict['category_type']
+                    subcategory = point_dict['subcategory'] or ''
+
+                    # Добавляем баллы в соответствующие категории
+                    if category == 'study':
+                        if 'олимпиад' in subcategory.lower():
+                            student['studyDetails']['olympiads'].append({
+                                'name': subcategory,
+                                'value': point_dict['points']
+                            })
+                        elif 'успеваемость' in subcategory.lower():
+                            student['studyDetails']['performance'].append({
+                                'name': subcategory,
+                                'value': point_dict['points']
+                            })
+                        else:
+                            student['studyDetails']['additionalPrograms'].append({
+                                'name': subcategory,
+                                'value': point_dict['points']
+                            })
+                    elif category == 'research':
+                        if 'конкурс' in subcategory.lower():
+                            student['researchDetails']['scienceCompetitions'].append({
+                                'name': subcategory,
+                                'value': point_dict['points']
+                            })
+                        elif 'публикация' in subcategory.lower():
+                            student['researchDetails']['publications'].append({
+                                'name': subcategory,
+                                'value': point_dict['points']
+                            })
+                        elif 'конференция' in subcategory.lower():
+                            student['researchDetails']['conferences'].append({
+                                'name': subcategory,
+                                'value': point_dict['points']
+                            })
+                    elif category == 'creative':
+                        student['creativeDetails']['competitions'].append({
+                            'name': subcategory,
+                            'value': point_dict['points']
+                        })
+                    elif category == 'sport':
+                        if 'член' in subcategory.lower():
+                            student['sportDetails']['membership'] = subcategory
+                        else:
+                            student['sportDetails']['achievements'].append({
+                                'name': subcategory,
+                                'value': point_dict['points']
+                            })
+                    elif category == 'social':
+                        student['socialDetails']['roles'].append({
+                            'name': subcategory,
+                            'value': point_dict['points']
+                        })
+
+                return student
+        except psycopg2.Error as e:
+            print(f"Ошибка при получении детальной информации: {e}")
+            return None
+
+    def add_student_points(self, user_id, category_type, subcategory, points, description=None):
+        """Добавление баллов студенту"""
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO student_points 
+                    (user_id, category_type, subcategory, points, description)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (user_id, category_type, subcategory, points, description))
+                self.conn.commit()
+                return True
+        except psycopg2.Error as e:
+            self.conn.rollback()
+            print(f"Ошибка при добавлении баллов: {e}")
+            return False

@@ -30,6 +30,8 @@ app.jinja_env.filters['datetimeformat'] = datetimeformat
 
 
 def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
+
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -65,9 +67,6 @@ def organizer_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
-
-
-from datetime import datetime
 
 
 @app.route('/')
@@ -149,63 +148,6 @@ def register_page():
         # GET-запрос: просто отображаем страницу регистрации
         return render_template("register.html")
 
-
-# Add new route to handle modal form submission
-@app.route('/complete-registration', methods=['POST'])
-def complete_registration():
-    try:
-        user_id = session.get('temp_user_id')
-
-        # Получаем данные из формы
-        institute = request.form.get('institute')
-        course_number = request.form.get('course')
-        group_name = request.form.get('group')
-
-        # Получаем список категорий правильно
-        categories = request.form.getlist('categories[]')
-        print(f"Получены категории: {categories}")
-
-        # Соответствие между frontend и backend названиями категорий
-        category_mapping = {
-            'programming': 'Программирование',
-            'literature': 'Литература',
-            'sport': 'Спорт',
-            'active': 'Актив'
-        }
-
-        # Преобразуем frontend-названия в backend-названия
-        db_categories = []
-        for frontend_name in categories:
-            if frontend_name in category_mapping:
-                db_categories.append(category_mapping[frontend_name])
-            else:
-                print(f"Неизвестная категория: {frontend_name}")
-
-        print(f"Преобразованные категории: {db_categories}")
-
-        # Обновляем данные в базе
-        with db.get_connection() as conn:
-            with conn.cursor() as cursor:
-                # Обновляем основную информацию
-                cursor.execute("""
-                    UPDATE users 
-                    SET institute = %s,
-                        course_number = %s,
-                        group_name = %s
-                    WHERE user_id = %s
-                """, (institute, course_number, group_name, user_id))
-
-                # Обновляем категории
-                if db_categories:
-                    db.update_user_categories(user_id, db_categories)
-
-                conn.commit()
-
-        session.pop('temp_user_id', None)
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 400
-
 @app.route('/login', methods=['GET'])
 def login_page():
     message = request.args.get('message')
@@ -241,6 +183,7 @@ def logout():
     response.delete_cookie('user_id')
     response.delete_cookie('role_id')
     return response
+
 
 @app.route('/profile/<int:user_id>')
 def view_user_profile(user_id):
@@ -464,6 +407,7 @@ def assign_organizer():
     except Exception as e:
         abort(500, f"Ошибка при назначении роли: {str(e)}")
 
+
 @app.route('/admin/revoke-organizer', methods=['POST'])
 @admin_required
 def revoke_organizer():
@@ -481,6 +425,7 @@ def revoke_organizer():
 
 
 @app.route('/create-ad', methods=['GET'])
+@login_required
 def show_create_ad_page():
     user_id = request.cookies.get('user_id')
     try:
@@ -489,16 +434,9 @@ def show_create_ad_page():
         if not user:
             abort(404, "Пользователь не найден")
 
-        # Get categories
-        with db.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT name FROM categories ORDER BY name")
-                categories = [row[0] for row in cursor.fetchall()]
-
         return render_template(
             "create-ad.html",
-            user=user,  # Pass the user data to the template
-            categories=categories
+            user=user  # Pass the user data to the template
         )
     except Exception as e:
         abort(500, f"Ошибка при загрузке формы: {str(e)}")
@@ -778,47 +716,164 @@ def personal_account():
         abort(500, str(e))
 
 
-# @app.route('/add-certificate', methods=['POST'])
-# @login_required
-# def add_certificate():
-#     user_id = request.cookies.get('user_id')
-#     try:
-#         title = request.form.get('title')
-#         description = request.form.get('description')
-#
-#         # Проверяем обязательные поля
-#         if not title or not request.files.get('image'):
-#             flash('Название и изображение обязательны для заполнения', 'error')
-#             return redirect(url_for('personal_account'))
-#
-#         # Обработка изображения грамоты
-#         file = request.files['image']
-#         if file and allowed_file(file.filename):
-#             # Создаем папку пользователя, если ее нет
-#             user_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{user_id}')
-#             if not os.path.exists(user_folder):
-#                 os.makedirs(user_folder)
-#
-#             # Генерируем уникальное имя файла
-#             ext = file.filename.split('.')[-1].lower()
-#             filename = f"cert_{uuid.uuid4().hex}.{ext}"
-#             file_path = os.path.join(user_folder, filename)
-#             file.save(file_path)
-#
-#             # Сохраняем относительный путь
-#             image_url = f"uploads/user_{user_id}/{filename}"
-#
-#             # Добавляем грамоту в базу данных
-#             db.add_certificate(int(user_id), title, description, image_url)
-#             flash('Грамота успешно добавлена!', 'success')
-#         else:
-#             flash('Недопустимый формат файла', 'error')
-#
-#         return redirect(url_for('personal_account'))
-#     except Exception as e:
-#         app.logger.error(f"Ошибка при добавлении грамоты: {str(e)}")
-#         flash('Произошла ошибка при добавлении грамоты', 'error')
-#         return redirect(url_for('personal_account'))
+@app.route('/api/students')
+@login_required
+def get_students_data():
+    """API для получения данных студентов с пагинацией"""
+    try:
+        user_id = request.cookies.get('user_id')
+        if not user_id or not user_id.isdigit():
+            abort(403, "Доступ запрещен")
+
+        # Получаем параметры запроса
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 20, type=int)
+        search = request.args.get('search', '').strip()
+
+        # Получаем данные из базы
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Основной запрос с фильтрацией
+                query = """
+                    SELECT 
+                        u.user_id,
+                        u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') as fio,
+                        u.group_name,
+                        u.institute,
+                        u.course_number,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'study' THEN sp.points ELSE 0 END), 0) as study,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'research' THEN sp.points ELSE 0 END), 0) as research,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'creative' THEN sp.points ELSE 0 END), 0) as creative,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'sport' THEN sp.points ELSE 0 END), 0) as sport,
+                        COALESCE(SUM(CASE WHEN sp.category_type = 'social' THEN sp.points ELSE 0 END), 0) as social,
+                        COALESCE(SUM(sp.points), 0) as total
+                    FROM users u
+                    LEFT JOIN student_points sp ON u.user_id = sp.user_id
+                    WHERE u.role_id = 2
+                """
+
+                params = []
+
+                # Добавляем фильтр по поиску
+                if search:
+                    query += " AND (u.last_name ILIKE %s OR u.first_name ILIKE %s OR u.patronymic ILIKE %s OR u.group_name ILIKE %s)"
+                    search_term = f"%{search}%"
+                    params.extend([search_term, search_term, search_term, search_term])
+
+                query += " GROUP BY u.user_id, u.last_name, u.first_name, u.patronymic, u.group_name, u.institute, u.course_number"
+
+                # Сортировка
+                sort_by = request.args.get('sort_by', 'total')
+                sort_order = request.args.get('sort_order', 'desc')
+                if sort_by in ['fio', 'group_name', 'study', 'research', 'creative', 'sport', 'social', 'total']:
+                    query += f" ORDER BY {sort_by} {sort_order.upper()}"
+
+                # Получаем общее количество
+                count_query = f"SELECT COUNT(*) FROM ({query}) as subquery"
+                cursor.execute(count_query, params)
+                total = cursor.fetchone()[0]
+
+                # Добавляем пагинацию
+                query += " LIMIT %s OFFSET %s"
+                params.extend([per_page, (page - 1) * per_page])
+
+                cursor.execute(query, params)
+
+                columns = [desc[0] for desc in cursor.description]
+                students = []
+
+                for row in cursor.fetchall():
+                    student_dict = dict(zip(columns, row))
+                    # Преобразуем числовые значения
+                    for key in ['study', 'research', 'creative', 'sport', 'social', 'total']:
+                        student_dict[key] = int(student_dict[key]) if student_dict[key] else 0
+                    students.append(student_dict)
+
+                return jsonify({
+                    'students': students,
+                    'total': total,
+                    'page': page,
+                    'per_page': per_page,
+                    'total_pages': (total + per_page - 1) // per_page
+                })
+
+    except Exception as e:
+        app.logger.error(f"Ошибка при получении данных студентов: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/student/<int:student_id>/details')
+@login_required
+def get_student_details(student_id):
+    """API для получения детальной информации о студенте"""
+    try:
+        user_id = request.cookies.get('user_id')
+        if not user_id or not user_id.isdigit():
+            abort(403, "Доступ запрещен")
+
+        # Получаем детальную информацию из базы
+        student_details = db.get_student_detailed_points(student_id)
+
+        if not student_details:
+            abort(404, "Студент не найден")
+
+        # Формируем ссылку на грамоты
+        student_details['certificatesLink'] = url_for('view_user_profile', user_id=student_id, _external=True)
+
+        return jsonify(student_details)
+
+    except Exception as e:
+        app.logger.error(f"Ошибка при получении детальной информации: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/dropdown-data')
+@login_required
+def get_dropdown_data():
+    """API для получения данных для выпадающих списков"""
+    try:
+        user_id = request.cookies.get('user_id')
+        if not user_id or not user_id.isdigit():
+            abort(403, "Доступ запрещен")
+
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Институты
+                cursor.execute("""
+                    SELECT DISTINCT institute 
+                    FROM users 
+                    WHERE institute IS NOT NULL AND institute != '' 
+                    ORDER BY institute
+                """)
+                institutes = [row[0] for row in cursor.fetchall()]
+
+                # Курсы
+                cursor.execute("""
+                    SELECT DISTINCT course_number 
+                    FROM users 
+                    WHERE course_number IS NOT NULL 
+                    ORDER BY course_number
+                """)
+                courses = [str(row[0]) for row in cursor.fetchall()]
+
+                # Группы
+                cursor.execute("""
+                    SELECT DISTINCT group_name 
+                    FROM users 
+                    WHERE group_name IS NOT NULL AND group_name != '' 
+                    ORDER BY group_name
+                """)
+                groups = [row[0] for row in cursor.fetchall()]
+
+                return jsonify({
+                    'institutes': institutes,
+                    'courses': courses,
+                    'groups': groups
+                })
+
+    except Exception as e:
+        app.logger.error(f"Ошибка при получении данных для выпадающих списков: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/update-application-status', methods=['POST'])
@@ -870,20 +925,564 @@ def delete_image(image_id):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-### ДЕБАГ-РОУТЫ ###
-@app.route('/add-certificate')
-def show_cert_page():
+@app.route('/add-certificate', methods=['POST'])
+@login_required
+def add_certificate():
+    user_id = request.cookies.get('user_id')
     try:
-        user_id = request.cookies.get('user_id')
-        user_data = None
-        if user_id and user_id.isdigit():
-            user_data = db.get_user_profile(int(user_id))
+        title = request.form.get('title')
+        description = request.form.get('description')
 
-        return render_template('add-certificate.html', user=user_data)
+        # Проверяем обязательные поля
+        if not title:
+            flash('Название грамоты обязательно для заполнения', 'error')
+            return redirect(url_for('personal_account'))
+
+        # Проверяем наличие файла
+        if 'image' not in request.files:
+            flash('Необходимо загрузить файл грамоты', 'error')
+            return redirect(url_for('personal_account'))
+
+        file = request.files['image']
+
+        if file.filename == '':
+            flash('Не выбран файл', 'error')
+            return redirect(url_for('personal_account'))
+
+        if file and allowed_file(file.filename):
+            # Создаем папку пользователя для грамот
+            user_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'user_{user_id}', 'certificates')
+            if not os.path.exists(user_folder):
+                os.makedirs(user_folder)
+
+            # Генерируем уникальное имя файла
+            ext = file.filename.split('.')[-1].lower()
+            filename = f"cert_{uuid.uuid4().hex}.{ext}"
+            file_path = os.path.join(user_folder, filename)
+            file.save(file_path)
+
+            # Сохраняем относительный путь
+            file_url = f"uploads/user_{user_id}/certificates/{filename}"
+
+            # Добавляем только ОДНУ грамоту в базу данных
+            db.add_certificate(int(user_id), title, description or "", file_url)
+
+            flash('Грамота успешно добавлена!', 'success')
+            return redirect(url_for('personal_account'))
+        else:
+            flash('Недопустимый формат файла', 'error')
+            return redirect(url_for('personal_account'))
+
     except Exception as e:
-        return render_template('not_found.html', error=str(e)), 500
+        app.logger.error(f"Ошибка при добавлении грамоты: {str(e)}")
+        flash(f'Произошла ошибка при добавлении грамоты: {str(e)}', 'error')
+        return redirect(url_for('personal_account'))
 
 
+def calculate_points(category, subcategory, achievement):
+    """Расчет баллов на основе категории и достижения"""
+    points_map = {
+        'study': {
+            'performance_excellent': 2,
+            'performance_good': 1,
+            'olympiads_international': {'1': 6, '2': 5, '3': 3},
+            'olympiads_russian': {'1': 4, '2': 3, '3': 2},
+            'olympiads_university': {'1': 3, '2': 2, '3': 1},
+            'additional_programs': 1
+        },
+        'research': {
+            'science_competitions_international': {'1': 6, '2': 5, '3': 3},
+            'science_competitions_russian': {'1': 4, '2': 3, '3': 2},
+            'science_competitions_university': {'1': 3, '2': 2, '3': 1},
+            'publications_vak': 3,
+            'publications_other': 1,
+            'conferences': 1
+        },
+        'creative': {
+            'competitions_international': {'1': 6, '2': 5, '3': 3},
+            'competitions_russian': {'1': 4, '2': 3, '3': 2},
+            'competitions_university': {'1': 3, '2': 2, '3': 1}
+        },
+        'sport': {
+            'msmk': 8,
+            'team_russia': 8,
+            'competitions_world': 8,
+            'competitions_russia': 6,
+            'competitions_cfo': 5,
+            'competitions_region': 4,
+            'sport_promo': 1
+        },
+        'social': {
+            'starosta': 2,
+            'profsoyuz': 2,
+            'volunteer': 2,
+            'proforientation': 2
+        }
+    }
+
+    if category in points_map and subcategory in points_map[category]:
+        point_value = points_map[category][subcategory]
+
+        if isinstance(point_value, dict):
+            # Для конкурсов с местами
+            if achievement:
+                # Извлекаем номер места из достижения
+                import re
+                match = re.search(r'(\d+)\s*место', achievement)
+                if match:
+                    place = match.group(1)
+                    return point_value.get(place, 0)
+            return 0
+        else:
+            return point_value
+
+    return 0
+
+
+@app.route('/submit-application', methods=['POST'])
+@login_required
+def submit_application():
+    """Обработка подачи заявки на стипендию"""
+    user_id = request.cookies.get('user_id')
+
+    try:
+        user = db.get_user_profile(int(user_id))
+        if not user:
+            abort(404, "Пользователь не найден")
+
+        # Собираем основные данные
+        form_data = {
+            'study_points': int(request.form.get('study_points', 0)),
+            'research_points': int(request.form.get('research_points', 0)),
+            'creative_points': int(request.form.get('creative_points', 0)),
+            'sport_points': int(request.form.get('sport_points', 0)),
+            'social_points': int(request.form.get('social_points', 0)),
+            'total_points': 0,
+            'subcategories': []
+        }
+
+        # Список категорий и их подкатегорий из Excel файла
+        categories_config = {
+            'study': {
+                'name': 'Учебная деятельность',
+                'subcategories': {
+                    'performance_excellent': {'name': 'Успеваемость "отлично"', 'points': 2},
+                    'performance_good': {'name': 'Успеваемость "хорошо" и "отлично"', 'points': 1},
+                    'olympiads_international': {'name': 'Олимпиады международные', 'points_range': {1: 6, 2: 5, 3: 3}},
+                    'olympiads_russian': {'name': 'Олимпиады российские/областные', 'points_range': {1: 4, 2: 3, 3: 2}},
+                    'olympiads_university': {'name': 'Олимпиады вузовские', 'points_range': {1: 3, 2: 2, 3: 1}},
+                    'additional_programs': {'name': 'Дополнительные образовательные программы', 'points_per_program': 1}
+                }
+            },
+            'research': {
+                'name': 'Научно-исследовательская деятельность',
+                'subcategories': {
+                    'science_competitions_international': {'name': 'Научные конкурсы международные',
+                                                           'points_range': {1: 6, 2: 5, 3: 3}},
+                    'science_competitions_russian': {'name': 'Научные конкурсы российские/областные',
+                                                     'points_range': {1: 4, 2: 3, 3: 2}},
+                    'science_competitions_university': {'name': 'Научные конкурсы вузовские',
+                                                        'points_range': {1: 3, 2: 2, 3: 1}},
+                    'publications_vak': {'name': 'Публикации ВАК/РИНЦ', 'points': 3},
+                    'publications_other': {'name': 'Публикации прочие', 'points': 1},
+                    'conferences': {'name': 'Участие в научных конференциях', 'points_per_conference': 1}
+                }
+            },
+            'creative': {
+                'name': 'Творческие конкурсы',
+                'subcategories': {
+                    'competitions_international': {'name': 'Конкурсы международные',
+                                                   'points_range': {1: 6, 2: 5, 3: 3}},
+                    'competitions_russian': {'name': 'Конкурсы российские/областные',
+                                             'points_range': {1: 4, 2: 3, 3: 2}},
+                    'competitions_university': {'name': 'Конкурсы вузовские', 'points_range': {1: 3, 2: 2, 3: 1}}
+                }
+            },
+            'sport': {
+                'name': 'Спорт',
+                'subcategories': {
+                    'msmk': {'name': 'Мастер спорта международного класса', 'points': 8},
+                    'team_russia': {'name': 'Член Сборной России', 'points': 8},
+                    'competitions_world': {'name': 'Чемпионат мира', 'points': 8},
+                    'competitions_russia': {'name': 'Чемпионат России', 'points': 6},
+                    'competitions_cfo': {'name': 'Чемпионат ЦФО', 'points': 5},
+                    'competitions_region': {'name': 'Чемпионат области', 'points': 4},
+                    'sport_promo': {'name': 'Популяризация спорта', 'points': 1}
+                }
+            },
+            'social': {
+                'name': 'Общественная работа',
+                'subcategories': {
+                    'starosta': {'name': 'Староста', 'points': 2},
+                    'profsoyuz': {'name': 'Профсоюзная работа/студсовет', 'points': 2},
+                    'volunteer': {'name': 'Волонтерская деятельность', 'points': 2},
+                    'proforientation': {'name': 'Профориентационная работа/летние лагеря', 'points': 2}
+                }
+            }
+        }
+
+        # Обработка файлов и данных
+        files = request.files.getlist('certificates[]')
+        uploaded_files = []
+
+        # Сохраняем заявку
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Проверяем существование таблицы scholarship_applications
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT 1 FROM information_schema.tables 
+                        WHERE table_name = 'scholarship_applications'
+                    )
+                """)
+
+                if not cursor.fetchone()[0]:
+                    # Создаем таблицу если ее нет
+                    cursor.execute("""
+                        CREATE TABLE scholarship_applications (
+                            application_id SERIAL PRIMARY KEY,
+                            user_id INT NOT NULL,
+                            application_date TIMESTAMP DEFAULT NOW(),
+                            status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'under_review')),
+                            total_points INT DEFAULT 0,
+                            study_points INT DEFAULT 0,
+                            research_points INT DEFAULT 0,
+                            creative_points INT DEFAULT 0,
+                            sport_points INT DEFAULT 0,
+                            social_points INT DEFAULT 0,
+                            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                        )
+                    """)
+
+                # Создаем основную заявку
+                cursor.execute("""
+                    INSERT INTO scholarship_applications 
+                    (user_id, total_points, study_points, research_points, 
+                     creative_points, sport_points, social_points, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'pending')
+                    RETURNING application_id
+                """, (
+                    int(user_id),
+                    form_data['total_points'],
+                    form_data['study_points'],
+                    form_data['research_points'],
+                    form_data['creative_points'],
+                    form_data['sport_points'],
+                    form_data['social_points']
+                ))
+
+                application_id = cursor.fetchone()[0]
+
+                # Обрабатываем файлы грамот
+                for file in files:
+                    if file and allowed_file(file.filename):
+                        # Создаем папку для заявки
+                        app_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'app_{application_id}')
+                        if not os.path.exists(app_folder):
+                            os.makedirs(app_folder)
+
+                        # Генерируем уникальное имя файла
+                        ext = file.filename.split('.')[-1].lower()
+                        filename = f"cert_{uuid.uuid4().hex}.{ext}"
+                        file_path = os.path.join(app_folder, filename)
+                        file.save(file_path)
+
+                        # Сохраняем относительный путь
+                        file_url = f"uploads/app_{application_id}/{filename}"
+
+                        # Сохраняем информацию о файле
+                        cursor.execute("""
+                            INSERT INTO application_certificates 
+                            (application_id, file_path, original_filename)
+                            VALUES (%s, %s, %s)
+                            RETURNING certificate_id
+                        """, (application_id, file_url, file.filename))
+
+                        certificate_id = cursor.fetchone()[0]
+                        uploaded_files.append({
+                            'certificate_id': certificate_id,
+                            'file_url': file_url,
+                            'original_name': file.filename
+                        })
+
+                # Обрабатываем подкатегории из формы
+                for category_type, category_data in categories_config.items():
+                    for subcat_key, subcat_config in category_data['subcategories'].items():
+                        # Получаем значение из формы
+                        form_value = request.form.get(f'{category_type}_{subcat_key}')
+
+                        if form_value:
+                            try:
+                                # Для диапазонов очков (олимпиады, конкурсы)
+                                if 'points_range' in subcat_config:
+                                    place = int(form_value)
+                                    if place in subcat_config['points_range']:
+                                        points = subcat_config['points_range'][place]
+
+                                        cursor.execute("""
+                                            INSERT INTO application_subcategories 
+                                            (application_id, category_type, subcategory_name, place, points)
+                                            VALUES (%s, %s, %s, %s, %s)
+                                        """, (
+                                            application_id,
+                                            category_type,
+                                            subcat_config['name'],
+                                            place,
+                                            points
+                                        ))
+                                # Для фиксированных очков
+                                elif 'points' in subcat_config:
+                                    points = subcat_config['points']
+
+                                    cursor.execute("""
+                                        INSERT INTO application_subcategories 
+                                        (application_id, category_type, subcategory_name, points)
+                                        VALUES (%s, %s, %s, %s)
+                                    """, (
+                                        application_id,
+                                        category_type,
+                                        subcat_config['name'],
+                                        points
+                                    ))
+                                # Для программ/конференций (за каждую)
+                                elif 'points_per_program' in subcat_config or 'points_per_conference' in subcat_config:
+                                    count = int(form_value)
+                                    points_per = subcat_config.get('points_per_program') or subcat_config.get(
+                                        'points_per_conference', 1)
+                                    points = count * points_per
+
+                                    cursor.execute("""
+                                        INSERT INTO application_subcategories 
+                                        (application_id, category_type, subcategory_name, description, points)
+                                        VALUES (%s, %s, %s, %s, %s)
+                                    """, (
+                                        application_id,
+                                        category_type,
+                                        subcat_config['name'],
+                                        f"Количество: {count}",
+                                        points
+                                    ))
+                            except (ValueError, TypeError) as e:
+                                app.logger.warning(f"Ошибка обработки подкатегории {subcat_key}: {e}")
+                                continue
+
+                conn.commit()
+
+        # Обновляем общие баллы на основе подкатегорий
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Пересчитываем баллы по категориям
+                cursor.execute("""
+                    SELECT 
+                        category_type,
+                        SUM(points) as category_points
+                    FROM application_subcategories
+                    WHERE application_id = %s
+                    GROUP BY category_type
+                """, (application_id,))
+
+                category_points = {}
+                for row in cursor.fetchall():
+                    category_points[row[0]] = row[1]
+
+                # Обновляем общие баллы
+                total_points = sum(category_points.values())
+
+                cursor.execute("""
+                    UPDATE scholarship_applications 
+                    SET total_points = %s,
+                        study_points = %s,
+                        research_points = %s,
+                        creative_points = %s,
+                        sport_points = %s,
+                        social_points = %s
+                    WHERE application_id = %s
+                """, (
+                    total_points,
+                    category_points.get('study', 0),
+                    category_points.get('research', 0),
+                    category_points.get('creative', 0),
+                    category_points.get('sport', 0),
+                    category_points.get('social', 0),
+                    application_id
+                ))
+
+                conn.commit()
+
+        flash('Заявка на стипендию успешно подана!', 'success')
+        return redirect(url_for('personal_account'))
+
+    except Exception as e:
+        app.logger.error(f"Ошибка при подаче заявки на стипендию: {str(e)}")
+        flash(f'Ошибка при подаче заявки: {str(e)}', 'error')
+        return redirect(url_for('personal_account'))
+
+
+@app.route('/admin/scholarship-applications')
+@admin_required
+def view_scholarship_applications():
+    """Просмотр заявок на стипендию (для администраторов)"""
+    user_id = request.cookies.get('user_id')
+    try:
+        user = db.get_user_profile(int(user_id))
+
+        # Получаем все заявки
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT 
+                        sa.*,
+                        u.last_name || ' ' || u.first_name || ' ' || COALESCE(u.patronymic, '') as fio,
+                        u.group_name,
+                        u.institute
+                    FROM scholarship_applications sa
+                    JOIN users u ON sa.user_id = u.user_id
+                    ORDER BY sa.application_date DESC
+                """)
+
+                columns = [desc[0] for desc in cursor.description]
+                applications = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        return render_template(
+            "admin-scholarship.html",
+            user=user,
+            applications=applications
+        )
+    except Exception as e:
+        abort(500, str(e))
+
+
+@app.route('/submit-scholarship-application', methods=['POST'])
+@login_required
+def submit_scholarship_application():
+    """Обработка подачи заявки на стипендию"""
+    user_id = request.cookies.get('user_id')
+
+    try:
+        # Получаем данные из формы
+        form_data = {
+            'study_points': int(request.form.get('study_points', 0)),
+            'research_points': int(request.form.get('research_points', 0)),
+            'creative_points': int(request.form.get('creative_points', 0)),
+            'sport_points': int(request.form.get('sport_points', 0)),
+            'social_points': int(request.form.get('social_points', 0)),
+            'total_points': int(request.form.get('total_points', 0))
+        }
+
+        # Получаем детальные данные по подкатегориям
+        detailed_data = {}
+
+        # Учебная деятельность
+        detailed_data['study'] = {
+            'performance': request.form.get('study_performance'),
+            'olympiads_international': request.form.get('olympiads_international'),
+            'olympiads_russian': request.form.get('olympiads_russian'),
+            'olympiads_university': request.form.get('olympiads_university'),
+            'additional_programs': request.form.get('additional_programs_count')
+        }
+
+        # Научная деятельность
+        detailed_data['research'] = {
+            'science_competitions_international': request.form.get('science_competitions_international'),
+            'science_competitions_russian': request.form.get('science_competitions_russian'),
+            'science_competitions_university': request.form.get('science_competitions_university'),
+            'publications_vak': request.form.get('publications_vak_count'),
+            'publications_other': request.form.get('publications_other_count'),
+            'conferences': request.form.get('conferences_count')
+        }
+
+        # Творческие конкурсы
+        detailed_data['creative'] = {
+            'competitions_international': request.form.get('creative_competitions_international'),
+            'competitions_russian': request.form.get('creative_competitions_russian'),
+            'competitions_university': request.form.get('creative_competitions_university')
+        }
+
+        # Спорт
+        detailed_data['sport'] = {
+            'msmk': request.form.get('sport_msmk'),
+            'team_russia': request.form.get('sport_team_russia'),
+            'world_winner': request.form.get('sport_world_winner'),
+            'russia_winner': request.form.get('sport_russia_winner'),
+            'cfo_winner': request.form.get('sport_cfo_winner'),
+            'region_winner': request.form.get('sport_region_winner'),
+            'world_prize': request.form.get('sport_world_prize'),
+            'russia_prize': request.form.get('sport_russia_prize'),
+            'cfo_prize': request.form.get('sport_cfo_prize'),
+            'region_prize': request.form.get('sport_region_prize'),
+            'promo': request.form.get('sport_promo')
+        }
+
+        # Общественная работа
+        detailed_data['social'] = {
+            'starosta': request.form.get('social_starosta'),
+            'profsoyuz': request.form.get('social_profsoyuz'),
+            'volunteer': request.form.get('social_volunteer'),
+            'proforientation': request.form.get('social_proforientation')
+        }
+
+        # Создаем заявку в базе данных
+        with db.get_connection() as conn:
+            with conn.cursor() as cursor:
+                # Создаем основную запись заявки
+                cursor.execute("""
+                    INSERT INTO scholarship_applications 
+                    (user_id, total_points, study_points, research_points, 
+                     creative_points, sport_points, social_points, status, application_date)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, 'pending', NOW())
+                    RETURNING application_id
+                """, (
+                    int(user_id),
+                    form_data['total_points'],
+                    form_data['study_points'],
+                    form_data['research_points'],
+                    form_data['creative_points'],
+                    form_data['sport_points'],
+                    form_data['social_points']
+                ))
+
+                application_id = cursor.fetchone()[0]
+
+                # Сохраняем детальные данные по подкатегориям
+                for category_type, category_data in detailed_data.items():
+                    for subcat_name, subcat_value in category_data.items():
+                        if subcat_value:
+                            cursor.execute("""
+                                INSERT INTO application_subcategories 
+                                (application_id, category_type, subcategory_name, value)
+                                VALUES (%s, %s, %s, %s)
+                            """, (application_id, category_type, subcat_name, subcat_value))
+
+                # Сохраняем файлы грамот
+                files = request.files.getlist('certificates[]')
+                for file in files:
+                    if file and allowed_file(file.filename):
+                        # Создаем папку для заявки
+                        app_folder = os.path.join(app.config['UPLOAD_FOLDER'], f'scholarship_{application_id}')
+                        if not os.path.exists(app_folder):
+                            os.makedirs(app_folder)
+
+                        # Сохраняем файл
+                        filename = secure_filename(f"{uuid.uuid4().hex}_{file.filename}")
+                        file_path = os.path.join(app_folder, filename)
+                        file.save(file_path)
+
+                        # Сохраняем в базу данных
+                        cursor.execute("""
+                            INSERT INTO application_certificates 
+                            (application_id, file_path, original_filename)
+                            VALUES (%s, %s, %s)
+                        """, (application_id, f"uploads/scholarship_{application_id}/{filename}", file.filename))
+
+                conn.commit()
+
+        flash('Заявка на стипендию успешно подана!', 'success')
+        return redirect(url_for('personal_account'))
+
+    except Exception as e:
+        app.logger.error(f"Ошибка при подаче заявки на стипендию: {str(e)}")
+        flash(f'Ошибка при подаче заявки: {str(e)}', 'error')
+        return redirect(url_for('personal_account'))
 
 def main():
     # Создаем папку для загрузок, если ее нет
