@@ -37,47 +37,61 @@
                 <span style="color: #1867AA; font-weight: bold; font-size: 20px; margin-left: 13px;">БГИТУ Портфель</span>
             </a>
             <div class="dropdown">
-                <button onclick="toggleDropdown()" style="display: flex; align-items: center; background-color: white; border: none; cursor: pointer;">
-                    {% if user.avatar_url %}
-                        <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
-                    {% else %}
-                        <div style="background-color: white; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #bdbdbd;">
-                            <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
+                {% if user %}
+                    <!-- Если пользователь авторизован -->
+                    <button onclick="toggleDropdown()" style="display: flex; align-items: center; background-color: white; border: none; cursor: pointer;">
+                        {% if user.avatar_url %}
+                            <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <div style="background-color: white; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #bdbdbd;">
+                                <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px" style="margin-top:6px; margin-left:-2px">
+                            </div>
+                        {% endif %}
+                        <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">{{ user.last_name }} {{ user.first_name|first }}.{{ user.patronymic|first }}.</span>
+                        <img src="/static/assets/alt-arrow-down-svgrepo-com.svg" width="52px" height="28px">
+                    </button>
+                    <div id="dropdown-menu" class="dropdown-content">
+                        <a href="{{ url_for('personal_account') }}" style="display: flex; align-items: center;">
+                            <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px">
+                            <span style="font-size: 20px; font-weight: 400;">Профиль</span>
+                        </a>
+                        <a href="{{ url_for('edit_account_page') }}" style="display: flex; align-items: center;">
+                            <img src="/static/assets/settings-svgrepo-com.svg" width="46px" height="29px">
+                            <span style="font-size: 20px; font-weight: 400;">Настройки</span>
+                        </a>
+                        <a href="{{ url_for('logout') }}" style="display: flex; align-items: center;">
+                            <img src="/static/assets/logout-2-svgrepo-com.svg" width="46px" height="29px">
+                            <span style="font-size: 20px; font-weight: 400; color: #AA1818;">Выйти</span>
+                        </a>
+                    </div>
+                {% else %}
+                    <!-- Если пользователь не авторизован (гость) -->
+                    <div style="display: flex; align-items: center;">
+                        <div style="background-color: white; width: 44px; height: 44px; border-radius: 50%; border: 1px solid #bdbdbd; display: flex; align-items: center; justify-content: center;">
+                            <img src="/static/assets/user-svgrepo-com.svg" width="30px" height="20px">
                         </div>
-                    {% endif %}
-                    <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">{{ user.last_name }} {{ user.first_name|first }}.{{ user.patronymic|first }}.</span>
-                    <img src="/static/assets/alt-arrow-down-svgrepo-com.svg" width="52px" height="28px">
-                </button>
-                <div id="dropdown-menu" class="dropdown-content">
-                    <a href="{{ url_for('personal_account') }}" style="display: flex; align-items: center;">
-                        <img src="/static/assets/user-svgrepo-com.svg" width="46px" height="29px">
-                        <span style="font-size: 20px; font-weight: 400;">Профиль</span>
-                    </a>
-                    <a href="{{ url_for('edit_account_page') }}" style="display: flex; align-items: center;">
-                        <img src="/static/assets/settings-svgrepo-com.svg" width="46px" height="29px">
-                        <span style="font-size: 20px; font-weight: 400;">Настройки</span>
-                    </a>
-                    <a href="{{ url_for('logout') }}" style="display: flex; align-items: center;">
-                        <img src="/static/assets/logout-2-svgrepo-com.svg" width="46px" height="29px">
-                        <span style="font-size: 20px; font-weight: 400; color: #AA1818;">Выйти</span>
-                    </a>
-                </div>
+                        <span style="color: #1867AA; font-weight: 400; font-size: 20px; margin-left: 9px;">Гость</span>
+                        <a href="{{ url_for('login_page') }}" style="margin-left: 15px; padding: 5px 15px; background-color: #1867AA; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;">
+                            Войти
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </nav>
     </header>
 
     <div style="padding: 30px 114px; background-color: #1867AA; display: flex; align-items: center; gap: 50px;">
-        {% if user.avatar_url %}
-            <img src="{{ url_for('static', filename=user.avatar_url) }}" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+        {% if viewed_user.avatar_url %}
+            <img src="{{ url_for('static', filename=viewed_user.avatar_url) }}" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
         {% else %}
             <div style="background-color: white; width: 150px; height: 150px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #bdbdbd;">
                 <img src="{{ url_for('static', filename='assets/user-svgrepo-com.svg') }}" style="width: 60px; height: 60px;">
             </div>
         {% endif %}
         <div>
-            <h1 style="color: white; font-size: 45px; font-weight: bold;">{{ user.last_name }} {{ user.first_name }} {{ user.patronymic }}</h1>
+            <h1 style="color: white; font-size: 45px; font-weight: bold;">{{ viewed_user.last_name }} {{ viewed_user.first_name }} {{ viewed_user.patronymic }}</h1>
             <span style="color: rgba(255, 255, 255, 0.434); font-size: 20px; font-style: italic; font-weight: 300;">
-                {% if user.role_id == 1 %}Администратор{% elif user.role_id == 3 %}Организатор{% else %}Обычный пользователь{% endif %}
+                {% if viewed_user.role_id == 1 %}Администратор{% elif viewed_user.role_id == 3 %}Организатор{% else %}Студент{% endif %}
             </span>
         </div>
     </div>
@@ -91,27 +105,27 @@
             <div>
                 <h4 style="font-style: italic; font-weight: 300;">Степень обучения:</h4>
                 <p>
-                    {% if user.education_level == 'bachelor' %}Бакалавриат
-                    {% elif user.education_level == 'master' %}Магистратура
-                    {% elif user.education_level == 'postgraduate' %}Аспирантура
+                    {% if viewed_user.education_level == 'bachelor' %}Бакалавриат
+                    {% elif viewed_user.education_level == 'master' %}Магистратура
+                    {% elif viewed_user.education_level == 'postgraduate' %}Аспирантура
                     {% else %}Не указано{% endif %}
                 </p>
             </div>
             <div>
                 <h4 style="font-style: italic; font-weight: 300;">Курс:</h4>
-                <p>{{ user.course_number if user.course_number else 'Не указано' }}</p>
+                <p>{{ viewed_user.course_number if viewed_user.course_number else 'Не указано' }}</p>
             </div>
             <div>
                 <h4 style="font-style: italic; font-weight: 300;">Группа:</h4>
-                <p>{{ user.group_name if user.group_name else 'Не указано' }}</p>
+                <p>{{ viewed_user.group_name if viewed_user.group_name else 'Не указано' }}</p>
             </div>
             <div>
                 <h4 style="font-style: italic; font-weight: 300;">Эл. почта:</h4>
-                <p>{{ user.email }}</p>
+                <p>{{ viewed_user.email }}</p>
             </div>
             <div>
                 <h4 style="font-style: italic; font-weight: 300;">Институт:</h4>
-                <p>{{ user.institute if user.institute else 'Не указано' }}</p>
+                <p>{{ viewed_user.institute if viewed_user.institute else 'Не указано' }}</p>
             </div>
         </div>
 
@@ -158,7 +172,6 @@
             </div>
         </div>
     </div>
-
 
     <footer>
         <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">

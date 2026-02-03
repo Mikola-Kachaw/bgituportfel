@@ -576,7 +576,7 @@ class Database:
                 "title": r[1],
                 "description": r[2],
                 "image_url": r[3],
-                "upload_date": r[4]
+                "upload_date": r[4].strftime('%Y-%m-%d %H:%M:%S') if r[4] else None
             }
             for r in rows
         ]

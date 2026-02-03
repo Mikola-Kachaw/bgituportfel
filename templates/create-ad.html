@@ -75,7 +75,9 @@
             <div class="error-message">{{ error }}</div>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('submit_application') }}" enctype="multipart/form-data" id="scholarshipForm">
+        <form method="POST" action="{{ url_for('submit_application') }}" id="scholarshipForm">
+            <input type="hidden" name="selected_certificates" id="selectedCertificatesInput" value="">
+
             <div class="form-columns">
                 <div class="left-column">
                     <h1 style="color: #1867AA; font-size: 30px; font-weight: bold; margin-bottom: 20px">Учебная деятельность</h1>
@@ -473,13 +475,19 @@
                     <div class="category-section">
                         <h3>Грамоты и подтверждающие документы</h3>
                         <div class="photo-container">
-                            <div class="avatar-upload">
-                                <div class="drop-area" id="dropArea">
-                                    <span class="drop-text">Выбрать грамоты (поддерживаются изображения и PDF)</span>
-                                    <input type="file" id="fileInput" name="certificates[]" multiple accept="image/*,.pdf,.doc,.docx">
-                                </div>
-                                <div id="fileList" style="margin-top: 10px;"></div>
-                            </div>
+                            <button type="button" class="select-certificates-btn" id="selectCertificatesBtn">
+                                📄 Выбрать грамоты
+                            </button>
+                        </div>
+
+                        <!-- Список выбранных грамот -->
+                        <div class="selected-certificates-container" id="selectedCertificatesContainer" style="display: none;">
+                            <div class="selected-certificates-title">Выбранные грамоты:</div>
+                            <div class="selected-certificates-list" id="selectedCertificatesList"></div>
+                        </div>
+
+                        <div class="no-certificates-message" id="noCertificatesMessage">
+                            Грамоты не выбраны
                         </div>
                     </div>
 
@@ -521,6 +529,24 @@
         </form>
     </div>
 
+    <!-- Модальное окно выбора грамот -->
+    <div id="certificatesModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeCertificatesModal()">&times;</button>
+            <h2 class="modal-title">Выберите грамоты для заявки</h2>
+            <div class="certificates-count" id="certificatesCount">Загрузка грамот...</div>
+
+            <div id="certificatesLoading" class="loading-indicator">Загрузка</div>
+
+            <div class="certificate-selection-list" id="certificateSelectionList"></div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeCertificatesModal()">Отмена</button>
+                <button type="button" class="btn-confirm" onclick="confirmCertificatesSelection()">Выбрать</button>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <a href="https://bgitu.ru/" style="display: flex; align-items: center; text-decoration: none;">
             <img src="static/assets/Logo_BGITU_bely.png" width="59px" height="60px">
@@ -530,5 +556,219 @@
             <img src="static/assets/logo_IT_bely.png" width="55px" height="59px">
         </a>
     </footer>
+
+    <script>
+        // Глобальные переменные
+        let userCertificates = [];
+        let selectedCertificateIds = [];
+        let currentlySelectedIds = [];
+
+        // Функции для работы с модальным окном
+        function openCertificatesModal() {
+            document.getElementById('certificatesModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            loadUserCertificates();
+        }
+
+        function closeCertificatesModal() {
+            document.getElementById('certificatesModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function toggleDropdown() {
+            document.getElementById("dropdown-menu").classList.toggle("show");
+        }
+
+        // Загрузка грамот пользователя
+        function loadUserCertificates() {
+            const loadingElement = document.getElementById('certificatesLoading');
+            const listElement = document.getElementById('certificateSelectionList');
+            const countElement = document.getElementById('certificatesCount');
+
+            loadingElement.style.display = 'block';
+            listElement.innerHTML = '';
+            countElement.textContent = 'Загрузка грамот...';
+
+            fetch('/get_user_certificates')
+                .then(response => response.json())
+                .then(data => {
+                    userCertificates = data.certificates || [];
+                    renderCertificatesList();
+                    loadingElement.style.display = 'none';
+
+                    if (userCertificates.length === 0) {
+                        countElement.textContent = 'У вас нет загруженных грамот';
+                        listElement.innerHTML = '<div style="text-align: center; padding: 40px; color: #666; width: 100%;">У вас нет загруженных грамот. Добавьте грамоты в личном кабинете.</div>';
+                    } else {
+                        countElement.textContent = `Выберите грамоты (${userCertificates.length} доступно)`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading certificates:', error);
+                    loadingElement.style.display = 'none';
+                    listElement.innerHTML = '<div style="text-align: center; padding: 40px; color: #ff4444; width: 100%;">Ошибка загрузки грамот</div>';
+                    countElement.textContent = 'Ошибка загрузки грамот';
+                });
+        }
+
+        // Отрисовка списка грамот
+        function renderCertificatesList() {
+            const listElement = document.getElementById('certificateSelectionList');
+            listElement.innerHTML = '';
+
+            userCertificates.forEach(cert => {
+                const isSelected = currentlySelectedIds.includes(cert.certificate_id);
+
+                const certElement = document.createElement('div');
+                certElement.className = `certificate-select-card ${isSelected ? 'selected' : ''}`;
+                certElement.innerHTML = `
+                    <input type="checkbox"
+                           class="certificate-checkbox"
+                           data-cert-id="${cert.certificate_id}"
+                           ${isSelected ? 'checked' : ''}
+                           onchange="toggleCertificateSelection(${cert.certificate_id}, this.checked)">
+
+                    ${cert.image_url.endsWith('.pdf') ? `
+                        <div class="certificate-select-pdf-placeholder">
+                            <div class="certificate-select-pdf-icon">📕</div>
+                            <span class="certificate-select-pdf-text">PDF документ</span>
+                        </div>
+                    ` : `
+                        <div class="certificate-select-image-container">
+                            <img src="/static/${cert.image_url}" alt="${cert.title}">
+                        </div>
+                    `}
+
+                    <div class="certificate-select-title" title="${cert.title}">${cert.title}</div>
+                `;
+
+                // Клик по карточке также выбирает грамоту
+                certElement.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('certificate-checkbox')) {
+                        const checkbox = certElement.querySelector('.certificate-checkbox');
+                        checkbox.checked = !checkbox.checked;
+                        toggleCertificateSelection(cert.certificate_id, checkbox.checked);
+                    }
+                });
+
+                listElement.appendChild(certElement);
+            });
+        }
+
+        // Переключение выбора грамоты
+        function toggleCertificateSelection(certId, isChecked) {
+            if (isChecked) {
+                if (!currentlySelectedIds.includes(certId)) {
+                    currentlySelectedIds.push(certId);
+                }
+            } else {
+                currentlySelectedIds = currentlySelectedIds.filter(id => id !== certId);
+            }
+
+            // Обновляем класс selected
+            const certElement = document.querySelector(`.certificate-checkbox[data-cert-id="${certId}"]`).closest('.certificate-select-card');
+            if (certElement) {
+                certElement.classList.toggle('selected', isChecked);
+            }
+        }
+
+        // Подтверждение выбора грамот
+        function confirmCertificatesSelection() {
+            selectedCertificateIds = [...currentlySelectedIds];
+            updateSelectedCertificatesDisplay();
+            closeCertificatesModal();
+        }
+
+        // Обновление отображения выбранных грамот
+        function updateSelectedCertificatesDisplay() {
+            const container = document.getElementById('selectedCertificatesContainer');
+            const list = document.getElementById('selectedCertificatesList');
+            const noCertMessage = document.getElementById('noCertificatesMessage');
+            const inputField = document.getElementById('selectedCertificatesInput');
+
+            // Сохраняем ID выбранных грамот в скрытом поле
+            inputField.value = selectedCertificateIds.join(',');
+
+            if (selectedCertificateIds.length === 0) {
+                container.style.display = 'none';
+                noCertMessage.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'block';
+            noCertMessage.style.display = 'none';
+            list.innerHTML = '';
+
+            selectedCertificateIds.forEach(certId => {
+                const cert = userCertificates.find(c => c.certificate_id === certId);
+                if (cert) {
+                    const certItem = document.createElement('div');
+                    certItem.className = 'selected-certificate-item';
+                    certItem.innerHTML = `
+                        <span class="selected-certificate-name" title="${cert.title}">${cert.title}</span>
+                        <button type="button" class="remove-certificate-btn" onclick="removeSelectedCertificate(${certId})">&times;</button>
+                    `;
+                    list.appendChild(certItem);
+                }
+            });
+        }
+
+        // Удаление выбранной грамоты
+        function removeSelectedCertificate(certId) {
+            selectedCertificateIds = selectedCertificateIds.filter(id => id !== certId);
+            updateSelectedCertificatesDisplay();
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Кнопка выбора грамот
+            document.getElementById('selectCertificatesBtn').addEventListener('click', openCertificatesModal);
+
+            // Инициализируем currentlySelectedIds из уже выбранных
+            const initialSelected = document.getElementById('selectedCertificatesInput').value;
+            if (initialSelected) {
+                selectedCertificateIds = initialSelected.split(',').filter(id => id !== '').map(id => parseInt(id));
+                currentlySelectedIds = [...selectedCertificateIds];
+                updateSelectedCertificatesDisplay();
+            }
+
+            // Закрытие выпадающего меню при клике вне его
+            window.onclick = function(event) {
+                if (!event.target.matches('button')) {
+                    const dropdowns = document.getElementsByClassName("dropdown-content");
+                    for (let i = 0; i < dropdowns.length; i++) {
+                        const openDropdown = dropdowns[i];
+                        if (openDropdown.classList.contains('show')) {
+                            openDropdown.classList.remove('show');
+                        }
+                    }
+                }
+
+                // Закрытие модального окна при клике вне его
+                const modal = document.getElementById('certificatesModal');
+                if (event.target === modal) {
+                    closeCertificatesModal();
+                }
+            };
+
+            // Закрытие модального окна при нажатии Escape
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeCertificatesModal();
+                }
+            });
+        });
+
+        // Валидация формы перед отправкой
+        document.getElementById('scholarshipForm').addEventListener('submit', function(e) {
+            // Проверяем, что выбрана хотя бы одна грамота (если нужно)
+            if (selectedCertificateIds.length === 0) {
+                 e.preventDefault();
+                 alert('Пожалуйста, выберите хотя бы одну грамоту для подтверждения достижений');
+                 return;
+            }
+
+        });
+    </script>
 </body>
 </html>

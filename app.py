@@ -615,14 +615,9 @@ def personal_account():
 
 
 @app.route('/api/students')
-@login_required
 def get_students_data():
     """API для получения данных студентов с пагинацией"""
     try:
-        user_id = request.cookies.get('user_id')
-        if not user_id or not user_id.isdigit():
-            abort(403, "Доступ запрещен")
-
         # Получаем параметры запроса
         page = request.args.get('page', 1, type=int)
         per_page = request.args.get('per_page', 20, type=int)
@@ -701,14 +696,9 @@ def get_students_data():
 
 
 @app.route('/api/student/<int:student_id>/details')
-@login_required
 def get_student_details(student_id):
     """API для получения детальной информации о студенте"""
     try:
-        user_id = request.cookies.get('user_id')
-        if not user_id or not user_id.isdigit():
-            abort(403, "Доступ запрещен")
-
         # Получаем детальную информацию из базы
         student_details = db.get_student_detailed_points(student_id)
 
@@ -1401,6 +1391,21 @@ def submit_scholarship_application():
         app.logger.error(f"Ошибка при подаче заявки на стипендию: {str(e)}")
         flash(f'Ошибка при подаче заявки: {str(e)}', 'error')
         return redirect(url_for('personal_account'))
+
+
+@app.route('/get_user_certificates')
+@login_required
+def get_user_certificates():
+    user_id = request.cookies.get('user_id')
+
+    try:
+        certificates = db.get_user_certificates(int(user_id))
+        return jsonify({
+            'certificates': certificates
+        })
+    except Exception as e:
+        app.logger.error(f"Ошибка при получении грамот: {str(e)}")
+        return jsonify({'error': 'Ошибка сервера'}), 500
 
 def main():
     # Создаем папку для загрузок, если ее нет
