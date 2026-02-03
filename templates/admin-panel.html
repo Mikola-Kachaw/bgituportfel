@@ -84,7 +84,7 @@
                         </td>
                         <td class="action-cell table-actions">
                             {% if user.role != 'admin' %}
-                                {% if user.role == 'organizer' %}
+                                {% if user.role != 'organizer' %}
                                 <form method="POST" action="{{ url_for('assign_organizer') }}" style="display: inline;">
                                     <input type="hidden" name="user_id" value="{{ user.user_id }}">
                                     <button type="submit" class="btn btn-approve" title="Сделать организатором">
@@ -139,4 +139,5 @@
         }
     </script>
 </body>
+
 </html>
